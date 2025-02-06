@@ -1,0 +1,232 @@
+syntax = "proto3";
+option go_package = "pkg/protocol/pb";
+package pb;
+
+import "google/protobuf/empty.proto";
+
+service LogicExt{
+  //注册设备
+  rpc RegisterDevice (RegisterDeviceReq) returns (RegisterDeviceResp);
+  //推送信息到房间
+  rpc  PushRoom (PushRoomReq) returns (google.protobuf.Empty);
+
+  
+  //发送好友消息
+  rpc  SendMessageToFriend (SendMessageReq) returns (SendMessageResp);
+  //添加好友
+  rpc  AddFriend (AddFriendReq) returns (google.protobuf.Empty);
+  //同意添加好友
+  rpc  AgreeFriend (AgreeFriendReq) returns (google.protobuf.Empty);
+  //设置好友信息
+  rpc  SetFriend (SetFriendReq) returns (SetFriendResp);
+  //获取所有好友
+  rpc  GetAllFriends (google.protobuf.Empty) returns (GetAllFriendResp);
+
+
+  //发送群组信息
+  rpc  SendMessageToGroup (SendMessageReq) returns (SendMessageResp);
+  //创建群聊
+  rpc  CreateGroup (CreateGroupReq) returns (CreateGroupResp);
+  //更新群组
+  rpc  UpdateGroup (UpdateGroupReq) returns (google.protobuf.Empty);
+  //获取群组信息
+  rpc  GetGroup (GetGroupReq) returns (GetGroupResp);
+  //获取用户加入的所有群组信息
+  rpc  GetAllGroup (google.protobuf.Empty) returns (GetAllGroupResp);
+
+
+  //添加群组成员
+  rpc  AddGroupMember (AddGroupMemberReq) returns (AddGroupMemberResp);
+  //更新群组成员信息
+  rpc  UpdateGroupMember (UpdateGroupMemberReq) returns (google.protobuf.Empty);
+  //删除群组成员
+  rpc  DeleteGroupMember (DeleteGroupMemberReq) returns (google.protobuf.Empty);
+  //获取群组成员
+  rpc  GetGroupMember (GetGroupMemberReq) returns (GetGroupMemberResp);
+}
+
+//注册设备请求
+message RegisterDeviceReq{
+  int32 type = 2;               //设备类型
+  string brand = 3;             //厂商
+  string model = 4;             //机型
+  string system_version = 5;    //系统版本
+  string sdk_version = 6;       //sdk版本
+}
+
+//注册设备响应
+message RegisterDeviceResp{
+  int64 device_id = 1;          //设备id
+}
+
+
+//推送消息到房间
+message PushRoomReq{
+  int64 room_id = 1;            //房间id
+  int64 code = 2;               //消息类型
+  bytes content = 3;            //消息内容
+  int64 send_time = 4;          //消息发送时间戳,精确到毫秒
+  bool  is_persist = 5;         //是否将消息持久化
+  bool is_priority =6;          //是否优先推送
+}
+
+//发送消息请求
+message SendMessageReq{
+  int64 receiver_id = 1 ;       //接受者id 用户id/群组id
+  bytes content = 2;            //消息内容
+  int64 send_time = 3;          //消息发送时间戳,精确到毫秒
+}
+
+//发送消息响应
+message SendMessageResp{
+  int64 seq = 1;                //消息序列号
+}
+
+//添加好友请求
+message AddFriendReq{
+  int64 user_id = 1 ;           //用户id
+  string remarks = 2;           //备注
+  string description = 3;       //描述
+}
+
+//同意添加好友请求
+message AgreeFriendReq{
+  int64 user_id = 1;            //用户id
+  string remarks = 2;           //备注
+}
+
+//设置好友信息请求
+message SetFriendReq{
+  int64 user_id = 1;            //用户id
+  string remarks = 2;           //备注
+  string extra = 8;             //附加字段
+}
+
+//设置好友信息响应
+message SetFriendResp{
+  int64 user_id = 1;            //用户id
+  string remarks = 2;           //备注
+  string extra = 8;             //附加字段
+}
+
+//获取所有好友响应
+message GetAllFriendResp{
+  repeated Friend friends = 1;  //好友列表
+}
+
+//好友信息
+message Friend{
+  int64 user_id = 1;            //用户id
+  string phone_number = 2;      //电话号码
+  string nickname =3 ;          //昵称
+  int32 sex = 4;                //性别
+  string avatar_url = 5;        //头像
+  string user_extra = 6 ;       //用户附加字段
+  string remarks = 7;           //备注
+  string extra = 8 ;            //附加字段
+}
+
+//创建群组请求
+message CreateGroupReq{
+  string name = 1 ;             //名称
+  string avatar_url = 2;        //头像
+  string introduction = 3;      //介绍
+  string extra = 4;             //附加字段
+  repeated int64 member_ids = 5;//群组成员id列表
+}
+
+//创建群组响应
+message CreateGroupResp{
+  int64 group_id  = 1;          //群组id
+}
+
+//更新群组请求
+message UpdateGroupReq{
+  int64 group_id = 1;           //群组id
+  string avatar_url = 2;        //头像
+  string name = 3;              //名称
+  string introduction = 4;      //介绍
+  string extra = 5;             //附加字段
+}
+
+//获取群组信息请求
+message GetGroupReq{
+  int64 group_id = 1;           //群组id
+}
+
+//获取群组信息响应
+message GetGroupResp{
+  Group group = 1;              //群组信息
+}
+
+//获取用户加入的所有群聊
+message GetAllGroupResp{
+  repeated Group groups = 1;    //群组列表
+}
+//群组信息
+message Group{
+  int64 group_id = 1;           //群组id
+  string avatar_url = 2;        //头像
+  string name = 3;              //群组名称
+  string introduction = 4;      //介绍
+  int64 user_num = 5;           //用户数量
+  string extra = 6;             //附加字段
+  int64 create_time = 7;        //创建时间
+  int64 update_time= 8 ;        //更新时间
+}
+
+//添加群组好友请求
+message AddGroupMemberReq{
+  int64 group_id =  1;          //群组id
+  repeated int64 user_ids = 2 ; //用户id列表
+}
+
+//添加群组好友响应
+message AddGroupMemberResp{
+  repeated int64 user_ids = 1;  //用户id列表
+}
+
+//更新群组成员请求
+message UpdateGroupMemberReq{
+  int64 group_id = 1;           //群组id
+  int64 user_id = 2;            //用户id
+  MemberType member_type = 3;   //群组成员类型
+  string remarks = 4;           //备注
+  string extra = 5;             //附加字段
+}
+
+//群组成员类型
+enum MemberType {
+  GMT_UNKNOWN = 0 ;             //未知
+  GMT_ADMIN = 1;                //管理员
+  GMT_MEMBER = 2;               //普通成员
+}
+
+//删除群组成员请求
+message DeleteGroupMemberReq{
+  int64 group_id = 1;           //群组id
+  int64 user_id = 2;            //用户id
+}
+
+//获取群组成员信息
+message GetGroupMemberReq{
+  int64 group_id = 1;           //群组id
+  int64 user_id = 2;            //用户id
+}
+
+//获取群组成员响应
+message GetGroupMemberResp{
+  repeated GroupMember members = 1;     //成员列表
+}
+
+//群组成员信息
+message GroupMember{
+  int64 user_id = 1;            //用户id
+  string nickname = 2;          //昵称
+  int32 sex = 3;                //性别
+  string avatar_url = 4;        //头像
+  string user_extra = 5;        //用户额外字段
+  MemberType member_type = 6;   //成员类型
+  string remarks = 7;           //备注
+  string extra = 8 ;            //附加字段
+}

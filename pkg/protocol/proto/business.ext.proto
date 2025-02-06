@@ -1,0 +1,69 @@
+syntax = "proto3";
+option go_package = "pkg/protocol/pb";
+package pb;
+
+import "google/protobuf/empty.proto";
+
+service BusinessExt{
+  //登陆
+  rpc SignIn (SignInReq) returns (SignInResp) ;
+  //获取用户信息
+  rpc GetUser (GetUserReq) returns (GetUserResp);
+  //更新用户信息
+  rpc UpdateUser (UpdateUserReq) returns (google.protobuf.Empty);
+  //搜索用户
+  rpc SearchUser (SearchUserReq) returns (SearchUserResp);
+}
+
+//登陆请求
+message SignInReq{
+  string phone_number = 1;          //电话号码
+  string code = 2;                  //验证码
+  int64 device_id = 3;              //设备id
+}
+
+//登陆响应
+message SignInResp{
+  bool is_new = 1;                  //是否是新用户
+  int64 user_id = 2;                //用户id
+  string token = 3;                 //token
+}
+
+//用户信息
+message User{
+  int64 user_id = 1;                //用户id
+  string nickname = 2;              //昵称
+  int64 sex = 3;                    //性别
+  string avatar_url = 4;            //头像
+  string extra = 5;                 //附加字段
+  int64 create_time = 6;            //创建时间
+  int64 update_time = 7 ;           //更新时间
+}
+
+//获取用户信息请求
+message GetUserReq{
+  int64 user_id = 1;                //用户id
+}
+
+//获取用户信息响应
+message GetUserResp{
+  User user = 1 ;                   //用户信息
+}
+
+//更新用户信息
+message UpdateUserReq{
+  string nickname = 1;              //昵称
+  int64 sex = 2;                    //性别
+  string avatar_url = 3;            //头像
+  string extra = 4;                 //附加字段
+}
+
+//搜索用户请求
+message SearchUserReq{
+  string key = 1;                   //关键词
+}
+
+//搜索用户响应
+message SearchUserResp{
+  repeated User users = 1;          //用户列表
+}

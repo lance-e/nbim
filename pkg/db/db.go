@@ -1,0 +1,48 @@
+package db
+
+import (
+	"nbim/configs"
+	"nbim/pkg/logger"
+
+	"github.com/go-redis/redis"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+)
+
+var (
+	DB       *gorm.DB
+	RedisCli *redis.Client
+)
+
+func init() {
+	InitMysql(configs.GlobalConfig.Mysql)
+	InitRedis(configs.GlobalConfig.RedisHost, configs.GlobalConfig.RedisPassword)
+}
+
+func InitMysql(dataSource string) {
+	logger.Logger.Info("init mysql begin")
+	var err error
+	//"user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	DB, err = gorm.Open("mysql", dataSource)
+	if err != nil {
+		panic(err)
+	}
+	DB.SingularTable(true)
+	DB.LogMode(true)
+	logger.Logger.Info("init mysql done!")
+}
+
+func InitRedis(addr, password string) {
+	logger.Logger.Info("init redis begin")
+	RedisCli = redis.NewClient(&redis.Options{
+		Addr:     addr,
+		DB:       0,
+		Password: password,
+	})
+
+	_, err := RedisCli.Ping().Result()
+	if err != nil {
+		panic(err)
+	}
+	logger.Logger.Info("init redis done!")
+}
