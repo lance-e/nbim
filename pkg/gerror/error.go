@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"strings"
 
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/golang/protobuf/ptypes/any"
@@ -14,6 +15,23 @@ import (
 
 const name = "im"
 const TypeUrlStack = "type_url_stack"
+
+func WrapError(err error) error {
+	if err == nil {
+		return nil
+	}
+	s := &spb.Status{
+		Code:    int32(codes.Unknown),
+		Message: err.Error(),
+		Details: []*any.Any{
+			{
+				TypeUrl: TypeUrlStack,
+				Value:   []byte(stack()),
+			},
+		},
+	}
+	return status.FromProto(s).Err()
+}
 
 func WrapRPCError(err error) error {
 	if err == nil {
@@ -26,11 +44,21 @@ func WrapRPCError(err error) error {
 		Details: []*any.Any{
 			{
 				TypeUrl: TypeUrlStack,
-				Value:   []byte(stack()),
+				Value:   []byte((GetErrorStack(e) + "--grpc-- \n" + stack())),
 			},
 		},
 	}
 	return status.FromProto(s).Err()
+}
+
+func GetErrorStack(s *status.Status) string {
+	pbs := s.Proto()
+	for i := range pbs.Details {
+		if pbs.Details[i].TypeUrl == TypeUrlStack {
+			return string(pbs.Details[i].Value)
+		}
+	}
+	return ""
 }
 
 // 获取堆栈信息

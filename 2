@@ -5,7 +5,6 @@ import (
 	"nbim/pkg/logger"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -49,32 +48,12 @@ func InitRedis(addr, password string) {
 	logger.Logger.Info("init redis done!")
 }
 
-// 使用json的序列化方式对redis客户端set操作
+// 使用json的序列化方式set到redis客户端
 func SetRedisByJson(key string, value interface{}, duration time.Duration) error {
-	byte, err := sonic.Marshal(value)
-	if err != nil {
-		logger.Sugar.Error(err)
-		return err
-	}
-	err = RedisCli.Set(key, byte, duration).Err()
-	if err != nil {
-		logger.Sugar.Error(err)
-		return err
-	}
-	return nil
+	jsoniter.Marshal()
 }
 
-// 使用json的序列化方式对redis客户端get操作
+// 使用json的序列化方式get到redis客户端
 func GetRedisByJson(key string, value interface{}) error {
-	byte, err := RedisCli.Get(key).Bytes()
-	if err != nil {
-		logger.Sugar.Error(err)
-		return err
-	}
-	err = sonic.Unmarshal(byte, &value)
-	if err != nil {
-		logger.Sugar.Error(err)
-		return err
-	}
-	return nil
+
 }
