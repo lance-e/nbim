@@ -114,7 +114,7 @@ message GetDeviceResp{
 message Device {
   int64 device_id = 1;          //设备id
   int64 user_id = 2;            //用户id
-  int64 type = 3;               //设备类型,1.Android;2.IOS;3.Windows;4.Macos;5:Web
+  int32 type = 3;               //设备类型,1.Android;2.IOS;3.Windows;4.Macos;5:Web
   string brand = 4;             //手机厂商
   string model = 5;             //机型
   string system_version =6;     //系统版本

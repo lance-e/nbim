@@ -33,7 +33,7 @@ message SignInResp{
 message User{
   int64 user_id = 1;                //用户id
   string nickname = 2;              //昵称
-  int64 sex = 3;                    //性别
+  int32 sex = 3;                    //性别
   string avatar_url = 4;            //头像
   string extra = 5;                 //附加字段
   int64 create_time = 6;            //创建时间

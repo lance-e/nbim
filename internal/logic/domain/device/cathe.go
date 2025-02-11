@@ -13,6 +13,7 @@ import (
 type cathe struct{}
 
 var (
+	//key:用户 value:在线设备列表
 	UserDeviceRedisKey    = "user_device:"
 	UserDeviceRedisExpire = 2 * time.Hour
 )
@@ -38,7 +39,7 @@ func (c *cathe) Set(userId int64, devices []Device) error {
 	return gerror.WrapError(err)
 }
 
-// Del:删除指定用户的在线用户列表
+// Del:删除指定用户的在线设备列表
 func (c *cathe) Del(userId int64) error {
 	_, err := db.RedisCli.Del(UserDeviceRedisKey + strconv.FormatInt(userId, 10)).Result()
 	return gerror.WrapError(err)

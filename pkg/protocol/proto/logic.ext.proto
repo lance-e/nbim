@@ -84,27 +84,27 @@ message SendMessageResp{
 
 //添加好友请求
 message AddFriendReq{
-  int64 user_id = 1 ;           //用户id
+  int64 friend_id= 1 ;           //用户id
   string remarks = 2;           //备注
   string description = 3;       //描述
 }
 
 //同意添加好友请求
 message AgreeFriendReq{
-  int64 user_id = 1;            //用户id
+  int64 friend_id= 1;            //用户id
   string remarks = 2;           //备注
 }
 
 //设置好友信息请求
 message SetFriendReq{
-  int64 user_id = 1;            //用户id
+  int64 friend_id= 1;            //用户id
   string remarks = 2;           //备注
   string extra = 8;             //附加字段
 }
 
 //设置好友信息响应
 message SetFriendResp{
-  int64 user_id = 1;            //用户id
+  int64 friend_id= 1;            //用户id
   string remarks = 2;           //备注
   string extra = 8;             //附加字段
 }
@@ -116,7 +116,7 @@ message GetAllFriendResp{
 
 //好友信息
 message Friend{
-  int64 user_id = 1;            //用户id
+  int64 friend_id = 1;            //用户id
   string phone_number = 2;      //电话号码
   string nickname =3 ;          //昵称
   int32 sex = 4;                //性别
@@ -156,15 +156,15 @@ message GetGroupReq{
 
 //获取群组信息响应
 message GetGroupResp{
-  Group group = 1;              //群组信息
+  GroupInfo group = 1;              //群组信息
 }
 
 //获取用户加入的所有群聊
 message GetAllGroupResp{
-  repeated Group groups = 1;    //群组列表
+  repeated GroupInfo groups = 1;    //群组列表
 }
 //群组信息
-message Group{
+message GroupInfo{
   int64 group_id = 1;           //群组id
   string avatar_url = 2;        //头像
   string name = 3;              //群组名称

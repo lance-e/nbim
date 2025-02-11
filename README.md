@@ -26,3 +26,17 @@ to be continue...
 - protobuf
 - zap
 - gorm
+
+### 快速开始
+##### 建表:
+
+~~~shell
+mysql -u lance -p nbim < ./sql/tables.sql
+~~~
+
+##### 构建：
+
+~~~shell
+make all
+~~~
+

@@ -14,7 +14,7 @@ const (
 type Device struct {
 	Id            int64     //设备id
 	UserId        int64     //用户id
-	Type          int64     //设备类型,1.Android;2.IOS;3.Windows;4.Macos;5:Web
+	Type          int32     //设备类型,1.Android;2.IOS;3.Windows;4.Macos;5:Web
 	Brand         string    //手机厂商
 	Model         string    //机型
 	SystemVersion string    //系统版本

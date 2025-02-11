@@ -43,10 +43,10 @@ CREATE TABLE `friend`
   COLLATE = utf8mb4_bin COMMENT ='好友';
 
 -- ----------------------------
--- 群组表
+-- 群组信息表
 -- ----------------------------
-DROP TABLE IF EXISTS `group`;
-CREATE TABLE `group`
+DROP TABLE IF EXISTS `group_info`;
+CREATE TABLE `group_info`
 (
     `id`           bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
     `name`         varchar(50)   NOT NULL COMMENT '群组名称',
@@ -59,7 +59,7 @@ CREATE TABLE `group`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_bin COMMENT ='群组';
+  COLLATE = utf8mb4_bin COMMENT ='群组信息';
 
 -- ----------------------------
 -- 群组成员表

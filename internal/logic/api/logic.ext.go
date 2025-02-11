@@ -7,6 +7,7 @@ import (
 	"nbim/internal/logic/domain/group"
 	"nbim/internal/logic/domain/message"
 	"nbim/pkg/protocol/pb"
+	"nbim/pkg/rpc"
 
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -22,47 +23,79 @@ func (s *LogicExtServer) RegisterDevice(ctx context.Context, req *pb.RegisterDev
 
 // 推送信息到房间
 func (s *LogicExtServer) PushRoom(ctx context.Context, req *pb.PushRoomReq) (*emptypb.Empty, error) {
-	return message.App.PushRoom(ctx, req)
+	return &emptypb.Empty{}, message.App.PushRoom(ctx, req)
 }
 
 // 发送好友消息
 func (s *LogicExtServer) SendMessageToFriend(ctx context.Context, req *pb.SendMessageReq) (*pb.SendMessageResp, error) {
-	return message.App.SendMessageToFriend(ctx, req)
+	userid, deviceid, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return message.App.SendMessageToFriend(ctx, userid, deviceid, req)
 }
 
 // 添加好友
 func (s *LogicExtServer) AddFriend(ctx context.Context, req *pb.AddFriendReq) (*emptypb.Empty, error) {
-	return friend.App.AddFriend(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, friend.App.AddFriend(ctx, userid, req)
 }
 
 // 同意添加好友
 func (s *LogicExtServer) AgreeFriend(ctx context.Context, req *pb.AgreeFriendReq) (*emptypb.Empty, error) {
-	return friend.App.AgreeFriend(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, friend.App.AgreeFriend(ctx, userid, req)
 }
 
 // 设置好友信息
 func (s *LogicExtServer) SetFriend(ctx context.Context, req *pb.SetFriendReq) (*pb.SetFriendResp, error) {
-	return friend.App.SetFriend(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return friend.App.SetFriend(ctx, userid, req)
 }
 
 // 获取所有好友
 func (s *LogicExtServer) GetAllFriends(ctx context.Context, req *emptypb.Empty) (*pb.GetAllFriendResp, error) {
-	return friend.App.GetAllFriends(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return friend.App.GetAllFriends(ctx, userid, req)
 }
 
 // 发送群组信息
 func (s *LogicExtServer) SendMessageToGroup(ctx context.Context, req *pb.SendMessageReq) (*pb.SendMessageResp, error) {
-	return message.App.SendMessageToGroup(ctx, req)
+	userid, deviceid, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return message.App.SendMessageToGroup(ctx, userid, deviceid, req)
 }
 
 // 创建群聊
 func (s *LogicExtServer) CreateGroup(ctx context.Context, req *pb.CreateGroupReq) (*pb.CreateGroupResp, error) {
-	return group.App.CreateGroup(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return group.App.CreateGroup(ctx, userid, req)
 }
 
 // 更新群组
 func (s *LogicExtServer) UpdateGroup(ctx context.Context, req *pb.UpdateGroupReq) (*emptypb.Empty, error) {
-	return group.App.UpdateGroup(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, group.App.UpdateGroup(ctx, userid, req)
 }
 
 // 获取群组信息
@@ -72,22 +105,34 @@ func (s *LogicExtServer) GetGroup(ctx context.Context, req *pb.GetGroupReq) (*pb
 
 // 获取用户加入的所有群组信息
 func (s *LogicExtServer) GetAllGroup(ctx context.Context, req *emptypb.Empty) (*pb.GetAllGroupResp, error) {
-	return group.App.GetAllGroup(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return group.App.GetAllGroup(ctx, userid, req)
 }
 
 // 添加群组成员
 func (s *LogicExtServer) AddGroupMember(ctx context.Context, req *pb.AddGroupMemberReq) (*pb.AddGroupMemberResp, error) {
-	return group.App.AddGroupMember(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return group.App.AddGroupMember(ctx, userid, req)
 }
 
 // 更新群组成员信息
 func (s *LogicExtServer) UpdateGroupMember(ctx context.Context, req *pb.UpdateGroupMemberReq) (*emptypb.Empty, error) {
-	return group.App.UpdateGroupMember(ctx, req)
+	return &emptypb.Empty{}, group.App.UpdateGroupMember(ctx, req)
 }
 
 // 删除群组成员
 func (s *LogicExtServer) DeleteGroupMember(ctx context.Context, req *pb.DeleteGroupMemberReq) (*emptypb.Empty, error) {
-	return group.App.DeleteGroupMember(ctx, req)
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, group.App.DeleteGroupMember(ctx, userid, req)
 }
 
 // 获取群组成员
