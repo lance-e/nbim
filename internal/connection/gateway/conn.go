@@ -1,4 +1,4 @@
-package connection
+package gateway
 
 import (
 	"container/list"

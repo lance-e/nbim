@@ -27,6 +27,12 @@ to be continue...
 - zap
 - gorm
 
+### 基本架构
+
+- Business:业务服务器，可根据业务需求拓展
+- Connection:长连接接入层，拆分出ip config ,gateway,state,用于维护与客户端的长连接，消息分发等
+- Logic:逻辑层，负责设备信息，好友信息，群组消息管理，消息转发等逻辑
+
 ### 快速开始
 ##### 建表:
 

@@ -5,6 +5,7 @@ import (
 	"nbim/pkg/gerror"
 	"nbim/pkg/protocol/pb"
 	"os"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -23,6 +24,8 @@ type Configuration struct {
 	Mysql                string
 	RedisHost            string
 	RedisPassword        string
+	EtcdEndpoints        []string
+	EtcdTimeout          time.Duration
 	PushRoomSubscribeNum int
 	PushAllSubscribeNum  int
 

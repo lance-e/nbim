@@ -5,6 +5,7 @@ import (
 	"nbim/pkg/protocol/pb"
 )
 
+// 单例模式，延迟缓存
 // 缓存，减少重复函数调用
 var (
 	connectionIntClient pb.ConnectionIntClient

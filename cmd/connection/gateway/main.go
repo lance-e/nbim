@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"nbim/configs"
-	"nbim/internal/connection"
+	"nbim/internal/connection/gateway"
 	"nbim/pkg/interceptor"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
@@ -21,12 +21,12 @@ func main() {
 
 	//启动tcp长连接服务器
 	go func() {
-		connection.StartTCPServer(configs.GlobalConfig.ConnectionTCPListenAddr)
+		gateway.StartTCPServer(configs.GlobalConfig.ConnectionTCPListenAddr)
 	}()
 
 	//启动websocket长连接服务器
 	go func() {
-		connection.StartWSServer(configs.GlobalConfig.ConnectionWSListenAddr)
+		gateway.StartWSServer(configs.GlobalConfig.ConnectionWSListenAddr)
 	}()
 
 	server := grpc.NewServer(grpc.UnaryInterceptor(interceptor.NewInterceptor()))
@@ -47,10 +47,10 @@ func main() {
 	}()
 
 	//启动mq
-	connection.StartSubscribe()
+	gateway.StartSubscribe()
 
 	//注册grpc服务端
-	pb.RegisterConnectionIntServer(server, &connection.ConnectionIntServer{})
+	pb.RegisterConnectionIntServer(server, &gateway.ConnectionIntServer{})
 
 	listen, err := net.Listen("tcp", configs.GlobalConfig.ConnectionRPCListenAddr)
 	if err != nil {
