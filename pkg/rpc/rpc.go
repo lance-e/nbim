@@ -8,17 +8,24 @@ import (
 // 单例模式，延迟缓存
 // 缓存，减少重复函数调用
 var (
-	connectionIntClient pb.ConnectionIntClient
-	logicIntClient      pb.LogicIntClient
-	businessIntClient   pb.BusinessIntClient
+	gatewayClient     pb.GatewayClient
+	stateClient       pb.StateClient
+	logicIntClient    pb.LogicIntClient
+	businessIntClient pb.BusinessIntClient
 )
 
-// 获取某一个connection客户端
-func GetConnectionIntClient() pb.ConnectionIntClient {
-	if connectionIntClient == nil {
-		connectionIntClient = configs.GlobalConfig.NewConnectionIntClient()
+func GetGatewayClient() pb.GatewayClient {
+	if gatewayClient == nil {
+		gatewayClient = configs.GlobalConfig.NewGatewayClient()
 	}
-	return connectionIntClient
+	return gatewayClient
+}
+
+func GetStateClient() pb.StateClient {
+	if stateClient == nil {
+		stateClient = configs.GlobalConfig.NewStateClient()
+	}
+	return stateClient
 }
 
 // 获取某一个logic客户端

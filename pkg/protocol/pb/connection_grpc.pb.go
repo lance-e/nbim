@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Gateway_SendDownlinkMessage_FullMethodName = "/pb.Gateway/SendDownlinkMessage"
+	Gateway_CloseConn_FullMethodName           = "/pb.Gateway/CloseConn"
 )
 
 // GatewayClient is the client API for Gateway service.
@@ -29,7 +30,8 @@ const (
 //
 // 网关服务器提供给状态服务器的rpc
 type GatewayClient interface {
-	SendDownlinkMessage(ctx context.Context, in *SendDownlinkMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SendDownlinkMessage(ctx context.Context, in *GatewayRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CloseConn(ctx context.Context, in *GatewayRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type gatewayClient struct {
@@ -40,10 +42,20 @@ func NewGatewayClient(cc grpc.ClientConnInterface) GatewayClient {
 	return &gatewayClient{cc}
 }
 
-func (c *gatewayClient) SendDownlinkMessage(ctx context.Context, in *SendDownlinkMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *gatewayClient) SendDownlinkMessage(ctx context.Context, in *GatewayRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Gateway_SendDownlinkMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) CloseConn(ctx context.Context, in *GatewayRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Gateway_CloseConn_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +68,8 @@ func (c *gatewayClient) SendDownlinkMessage(ctx context.Context, in *SendDownlin
 //
 // 网关服务器提供给状态服务器的rpc
 type GatewayServer interface {
-	SendDownlinkMessage(context.Context, *SendDownlinkMessageRequest) (*emptypb.Empty, error)
+	SendDownlinkMessage(context.Context, *GatewayRequest) (*emptypb.Empty, error)
+	CloseConn(context.Context, *GatewayRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedGatewayServer()
 }
 
@@ -67,8 +80,11 @@ type GatewayServer interface {
 // pointer dereference when methods are called.
 type UnimplementedGatewayServer struct{}
 
-func (UnimplementedGatewayServer) SendDownlinkMessage(context.Context, *SendDownlinkMessageRequest) (*emptypb.Empty, error) {
+func (UnimplementedGatewayServer) SendDownlinkMessage(context.Context, *GatewayRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendDownlinkMessage not implemented")
+}
+func (UnimplementedGatewayServer) CloseConn(context.Context, *GatewayRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloseConn not implemented")
 }
 func (UnimplementedGatewayServer) mustEmbedUnimplementedGatewayServer() {}
 func (UnimplementedGatewayServer) testEmbeddedByValue()                 {}
@@ -92,7 +108,7 @@ func RegisterGatewayServer(s grpc.ServiceRegistrar, srv GatewayServer) {
 }
 
 func _Gateway_SendDownlinkMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SendDownlinkMessageRequest)
+	in := new(GatewayRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -104,7 +120,25 @@ func _Gateway_SendDownlinkMessage_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: Gateway_SendDownlinkMessage_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServer).SendDownlinkMessage(ctx, req.(*SendDownlinkMessageRequest))
+		return srv.(GatewayServer).SendDownlinkMessage(ctx, req.(*GatewayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_CloseConn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GatewayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).CloseConn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Gateway_CloseConn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).CloseConn(ctx, req.(*GatewayRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -120,6 +154,10 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SendDownlinkMessage",
 			Handler:    _Gateway_SendDownlinkMessage_Handler,
 		},
+		{
+			MethodName: "CloseConn",
+			Handler:    _Gateway_CloseConn_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "connection.proto",
@@ -127,6 +165,7 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	State_ReceiveUplinkMessage_FullMethodName = "/pb.State/ReceiveUplinkMessage"
+	State_ClearConnState_FullMethodName       = "/pb.State/ClearConnState"
 )
 
 // StateClient is the client API for State service.
@@ -135,7 +174,8 @@ const (
 //
 // 状态服务器提供给网关服务器的rpc
 type StateClient interface {
-	ReceiveUplinkMessage(ctx context.Context, in *ReceiveUplinkMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ReceiveUplinkMessage(ctx context.Context, in *StateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ClearConnState(ctx context.Context, in *StateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type stateClient struct {
@@ -146,10 +186,20 @@ func NewStateClient(cc grpc.ClientConnInterface) StateClient {
 	return &stateClient{cc}
 }
 
-func (c *stateClient) ReceiveUplinkMessage(ctx context.Context, in *ReceiveUplinkMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *stateClient) ReceiveUplinkMessage(ctx context.Context, in *StateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, State_ReceiveUplinkMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateClient) ClearConnState(ctx context.Context, in *StateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, State_ClearConnState_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +212,8 @@ func (c *stateClient) ReceiveUplinkMessage(ctx context.Context, in *ReceiveUplin
 //
 // 状态服务器提供给网关服务器的rpc
 type StateServer interface {
-	ReceiveUplinkMessage(context.Context, *ReceiveUplinkMessageRequest) (*emptypb.Empty, error)
+	ReceiveUplinkMessage(context.Context, *StateRequest) (*emptypb.Empty, error)
+	ClearConnState(context.Context, *StateRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedStateServer()
 }
 
@@ -173,8 +224,11 @@ type StateServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStateServer struct{}
 
-func (UnimplementedStateServer) ReceiveUplinkMessage(context.Context, *ReceiveUplinkMessageRequest) (*emptypb.Empty, error) {
+func (UnimplementedStateServer) ReceiveUplinkMessage(context.Context, *StateRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReceiveUplinkMessage not implemented")
+}
+func (UnimplementedStateServer) ClearConnState(context.Context, *StateRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearConnState not implemented")
 }
 func (UnimplementedStateServer) mustEmbedUnimplementedStateServer() {}
 func (UnimplementedStateServer) testEmbeddedByValue()               {}
@@ -198,7 +252,7 @@ func RegisterStateServer(s grpc.ServiceRegistrar, srv StateServer) {
 }
 
 func _State_ReceiveUplinkMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReceiveUplinkMessageRequest)
+	in := new(StateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -210,7 +264,25 @@ func _State_ReceiveUplinkMessage_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: State_ReceiveUplinkMessage_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StateServer).ReceiveUplinkMessage(ctx, req.(*ReceiveUplinkMessageRequest))
+		return srv.(StateServer).ReceiveUplinkMessage(ctx, req.(*StateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _State_ClearConnState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServer).ClearConnState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: State_ClearConnState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServer).ClearConnState(ctx, req.(*StateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -225,6 +297,10 @@ var State_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReceiveUplinkMessage",
 			Handler:    _State_ReceiveUplinkMessage_Handler,
+		},
+		{
+			MethodName: "ClearConnState",
+			Handler:    _State_ClearConnState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

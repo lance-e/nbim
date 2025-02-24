@@ -16,9 +16,10 @@ etcd:
 push_room_subscribe_num: 100
 push_all_subscribe_num: 100
 connection_local_addr: 127.0.0.1:8000
-connection_rpc_addr: 127.0.0.1:8000
 connection_tcp_addr: 127.0.0.1:8001
 connection_ws_addr: 127.0.0.1:8002
+gateway_rpc_addr: 127.0.0.1:8003
+state_rpc_addr: 127.0.0.1:8004
 logic_rpc_listen_addr: 127.0.0.1:8010
 business_rpc_listen_addr: 127.0.0.1:8020
 

@@ -30,16 +30,18 @@ type Configuration struct {
 	PushAllSubscribeNum  int
 
 	ConnectionLocalAddr     string
-	ConnectionRPCListenAddr string
 	ConnectionTCPListenAddr string
 	ConnectionWSListenAddr  string
+	GatewayRpcAddr          string
+	StateRpcAddr            string
 	LogicRPCListenAddr      string
 	BusinessRpcListenAddr   string
-	FileHTTPListenAddr      string
 
 	NewConnectionIntClient func() pb.ConnectionIntClient
 	NewLogicIntClient      func() pb.LogicIntClient
 	NewBusinessIntClient   func() pb.BusinessIntClient
+	NewGatewayClient       func() pb.GatewayClient
+	NewStateClient         func() pb.StateClient
 }
 
 func init() {
