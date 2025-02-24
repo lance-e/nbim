@@ -7,11 +7,11 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type ConnectionIntServer struct {
-	pb.UnsafeConnectionIntServer
+type GatewayServer struct {
+	pb.UnsafeGatewayServer
 }
 
-// 消息转发
-func (s *ConnectionIntServer) TransferMessage(context.Context, *pb.TransferMessageReq) (*emptypb.Empty, error) {
+// gateway server: 发送下行消息
+func (g *GatewayServer) SendDownlinkMessage(ctx context.Context, req *pb.SendDownlinkMessageRequest) (*emptypb.Empty, error) {
 	return new(emptypb.Empty), nil
 }

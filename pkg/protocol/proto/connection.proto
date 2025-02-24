@@ -1,0 +1,25 @@
+syntax = "proto3";
+option go_package = "pkg/protocol/pb";
+package pb;
+
+import "google/protobuf/empty.proto";
+
+//网关服务器提供给状态服务器的rpc
+service Gateway{
+  rpc SendDownlinkMessage(SendDownlinkMessageRequest) returns (google.protobuf.Empty);
+}
+
+//状态服务器提供给网关服务器的rpc
+service State{
+  rpc ReceiveUplinkMessage(ReceiveUplinkMessageRequest) returns (google.protobuf.Empty);
+}
+
+message SendDownlinkMessageRequest{
+  int64 device_id = 1;  //设备id
+  bytes message = 2 ; //数据
+}
+
+message ReceiveUplinkMessageRequest{
+  int64 device_id = 1;  //设备id
+  bytes message = 2 ; //数据
+}
