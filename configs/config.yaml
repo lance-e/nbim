@@ -12,9 +12,10 @@ etcd:
   endpoints:
     - 127.0.0.1:2379
   timeout: 5
-  
 push_room_subscribe_num: 100
 push_all_subscribe_num: 100
+gateway_node_id: 1
+
 connection_local_addr: 127.0.0.1:8000
 connection_tcp_addr: 127.0.0.1:8001
 connection_ws_addr: 127.0.0.1:8002

@@ -3,7 +3,6 @@ package main
 import (
 	"nbim/configs"
 	"nbim/internal/business/api"
-	"nbim/pkg/interceptor"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
 	"net"
@@ -16,7 +15,7 @@ import (
 )
 
 func main() {
-	server := grpc.NewServer(grpc.UnaryInterceptor(interceptor.NewInterceptor()))
+	server := grpc.NewServer() //TODO:UnaryInterceptor
 
 	//优雅关闭
 	go func() {

@@ -13,7 +13,8 @@ const (
 )
 
 var (
-	IDtoConnInfo = sync.Map{}
+	TcpConnToConnID = sync.Map{}
+	IDtoConnInfo    = sync.Map{}
 )
 
 type ConnInfo struct {

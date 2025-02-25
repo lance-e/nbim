@@ -39,10 +39,16 @@ func onMessage(conn *netreactors.TcpConnection, buf *netreactors.Buffer, t time.
 		logger.Logger.Debug("onMessage: message unpacking failed")
 		return
 	}
+	id, ok := TcpConnToConnID.Load(conn)
+	if !ok {
+		logger.Logger.Debug("not found this tcp connection, close directly")
+		conn.ForceClose()
+		return
+	}
 	ctx := context.TODO()
 	rpc.GetStateClient().ReceiveUplinkMessage(ctx, &pb.StateRequest{
-		Endpoint: configs.GlobalConfig.StateRpcAddr,
-		ConnId:   0, //TODO
+		Endpoint: GetEndpoint(),
+		ConnId:   id.(int64),
 		Message:  msg,
 	})
 
@@ -51,11 +57,35 @@ func onMessage(conn *netreactors.TcpConnection, buf *netreactors.Buffer, t time.
 func onConnection(conn *netreactors.TcpConnection) {
 	if conn.Connected() {
 		//新建连接	
+		id := Snowflake.Generate()
+		info := &ConnInfo{
+			ConnID:   id,
+			ConnType: ConnTypeTCP,
+			TCP:      conn,
+		}
+		//维持基本连接状态
+		TcpConnToConnID.Store(conn, id)
+		IDtoConnInfo.Store(id, info)
 
 		logger.Logger.Debug("new connection:", zap.String("addr", conn.PeerAddr().String()))
 	} else {
 		//关闭连接
+		if id, ok := TcpConnToConnID.Load(conn); ok {
+			//1.主动断开：当由state调用gateway提供的close rpc后，会执行这里的回调，再调用state提供的清除连接状态 rpc.
+			//2.被动断开：当连接被动断开了，执行这里的回调，再调用state提供的清除连接状态 rpc.
+			rpc.GetStateClient().ClearConnState(context.TODO(), &pb.StateRequest{
+				Endpoint: GetEndpoint(),
+				ConnId:   id.(int64),
+			})
+			//清除基本连接状态
+			TcpConnToConnID.Delete(conn)
+			IDtoConnInfo.Delete(id)
+		}
 
 		logger.Logger.Debug("close connection:", zap.String("addr", conn.PeerAddr().String()))
 	}
+}
+
+func GetEndpoint() string {
+	return configs.GlobalConfig.StateRpcAddr
 }

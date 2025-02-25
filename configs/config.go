@@ -28,6 +28,7 @@ type Configuration struct {
 	EtcdTimeout          time.Duration
 	PushRoomSubscribeNum int
 	PushAllSubscribeNum  int
+	GatewayNodeId        int
 
 	ConnectionLocalAddr     string
 	ConnectionTCPListenAddr string

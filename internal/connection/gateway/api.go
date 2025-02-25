@@ -2,8 +2,11 @@ package gateway
 
 import (
 	"context"
+	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
+	"nbim/pkg/tcp"
 
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -28,6 +31,7 @@ type GatewayServer struct {
 
 // gateway server: 发送下行消息 ,由状态服务器调用
 func (g *GatewayServer) SendDownlinkMessage(ctx context.Context, req *pb.GatewayRequest) (*emptypb.Empty, error) {
+	logger.Logger.Debug("SendDownlinkMessage rpc")
 	newctx := context.TODO()
 	CmdChannel <- &cmdContext{
 		Ctx:     &newctx,
@@ -50,6 +54,7 @@ func (g *GatewayServer) CloseConn(ctx context.Context, req *pb.GatewayRequest) (
 	return &emptypb.Empty{}, nil
 }
 
+// 异步处理rpc请求
 func AsynHandleRPC() {
 	for cmd := range CmdChannel {
 		switch cmd.CmdType {
@@ -63,10 +68,34 @@ func AsynHandleRPC() {
 	}
 }
 
+// 发送下行消息
 func sendDownlinkMessage(ctx *cmdContext) {
-
+	buf := tcp.Packing(ctx.Payload)
+	if info, ok := IDtoConnInfo.Load(ctx.ConnId); ok {
+		conninfo := info.(*ConnInfo)
+		switch conninfo.ConnType {
+		case ConnTypeTCP:
+			conninfo.TCP.SendFromBuffer(buf)
+		case ConnTypeWS:
+			//TODO
+		default:
+			logger.Logger.Debug("unknown connection type", zapcore.Field{})
+		}
+	}
 }
 
+// 关闭连接
 func closeConn(ctx *cmdContext) {
-
+	if info, ok := IDtoConnInfo.Load(ctx.ConnId); ok {
+		conninfo := info.(*ConnInfo)
+		switch conninfo.ConnType {
+		case ConnTypeTCP:
+			//FIXME:Shutdown()，只关闭写端，保证数据不丢失
+			conninfo.TCP.ForceClose() //强制关闭读端写端 
+		case ConnTypeWS:
+			//TODO
+		default:
+			logger.Logger.Debug("unknown connection type")
+		}
+	}
 }

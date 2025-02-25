@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	"nbim/configs"
-	"nbim/pkg/interceptor"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
 	"nbim/pkg/rpc"
@@ -19,6 +18,12 @@ import (
 func RunMain() {
 	//init
 	CmdChannel = make(chan *cmdContext, 2048)
+	var err error
+	Snowflake, err = NewSnowflake(int64(configs.GlobalConfig.GatewayNodeId))
+	if err != nil {
+		//FIXME
+		panic(err)
+	}
 
 	//启动tcp长连接服务器
 	go func() {
@@ -30,7 +35,7 @@ func RunMain() {
 		StartWSServer(configs.GlobalConfig.ConnectionWSListenAddr)
 	}()
 
-	//
+	//异步处理rpc请求
 	go func() {
 		AsynHandleRPC()
 	}()
@@ -38,7 +43,8 @@ func RunMain() {
 	//启动mq
 	// StartSubscribe()
 
-	server := grpc.NewServer(grpc.UnaryInterceptor(interceptor.NewInterceptor()))
+	server := grpc.NewServer() //TODO:UnaryInterceptor
+
 	//优雅关闭
 	go func() {
 		c := make(chan os.Signal, 1)

@@ -33,6 +33,7 @@ func (d *DefaultConfig) Build() Configuration {
 		EtcdTimeout:          viper.GetDuration("etcd.timeout"),
 		PushRoomSubscribeNum: viper.GetInt("push_room_subscribe_num"),
 		PushAllSubscribeNum:  viper.GetInt("push_all_subscribe_num"),
+		GatewayNodeId:        viper.GetInt("gateway_node_id"),
 
 		ConnectionLocalAddr:     viper.GetString("connection_local_addr"),
 		ConnectionTCPListenAddr: viper.GetString("connection_tcp_addr"),
@@ -43,28 +44,28 @@ func (d *DefaultConfig) Build() Configuration {
 		BusinessRpcListenAddr:   viper.GetString("business_rpc_listen_addr"),
 
 		NewLogicIntClient: func() pb.LogicIntClient {
-			clientConn, err := grpc.NewClient("addrs:///"+viper.GetString("logic_rpc_listen_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
+			clientConn, err := grpc.NewClient(viper.GetString("logic_rpc_listen_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
 			if err != nil {
 				panic(err)
 			}
 			return pb.NewLogicIntClient(clientConn)
 		},
 		NewBusinessIntClient: func() pb.BusinessIntClient {
-			clientConn, err := grpc.NewClient("addrs:///"+viper.GetString("business_rpc_listen_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
+			clientConn, err := grpc.NewClient(viper.GetString("business_rpc_listen_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
 			if err != nil {
 				panic(err)
 			}
 			return pb.NewBusinessIntClient(clientConn)
 		},
 		NewGatewayClient: func() pb.GatewayClient {
-			clientConn, err := grpc.NewClient("addrs:///"+viper.GetString("gateway_rpc_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
+			clientConn, err := grpc.NewClient(viper.GetString("gateway_rpc_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
 			if err != nil {
 				panic(err)
 			}
 			return pb.NewGatewayClient(clientConn)
 		},
 		NewStateClient: func() pb.StateClient {
-			clientConn, err := grpc.NewClient("addrs:///"+viper.GetString("state_rpc_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
+			clientConn, err := grpc.NewClient(viper.GetString("state_rpc_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
 			if err != nil {
 				panic(err)
 			}

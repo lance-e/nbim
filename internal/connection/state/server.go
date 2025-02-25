@@ -1,8 +1,7 @@
-package main
+package state
 
 import (
 	"nbim/configs"
-	"nbim/internal/logic/api"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
 	"net"
@@ -14,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func main() {
+func RunMain() {
 	server := grpc.NewServer() //TODO:UnaryInterceptor
 
 	//优雅关闭
@@ -27,15 +26,14 @@ func main() {
 		server.GracefulStop()
 	}()
 
-	pb.RegisterLogicExtServer(server, &api.LogicExtServer{})
-	pb.RegisterLogicIntServer(server, &api.LogicIntServer{})
+	pb.RegisterStateServer(server, &StateServer{})
 
-	listen, err := net.Listen("tcp", configs.GlobalConfig.LogicRPCListenAddr)
+	listen, err := net.Listen("tcp", configs.GlobalConfig.StateRpcAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Logger.Info("logic RPC 服务启动")
+	logger.Logger.Info("business RPC 服务启动")
 	err = server.Serve(listen)
 	if err != nil {
 		logger.Logger.Error("serve error", zap.Error(err))
