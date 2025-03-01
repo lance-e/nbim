@@ -45,7 +45,7 @@ func (*service) Register(ctx context.Context, req *pb.RegisterDeviceReq) (int64,
 }
 
 func (*service) ConnSignIn(ctx context.Context, req *pb.ConnSignInReq) error {
-	_, err := rpc.GetBusinessIntClient().Auth(ctx, &pb.AuthReq{
+	_, err := rpc.GetLogicIntClient().Auth(ctx, &pb.AuthReq{
 		UserId:   req.UserId,
 		DeviceId: req.DeviceId,
 		Token:    req.Token,

@@ -49,7 +49,7 @@ func onMessage(conn *netreactors.TcpConnection, buf *netreactors.Buffer, t time.
 	rpc.GetStateClient().ReceiveUplinkMessage(ctx, &pb.StateRequest{
 		Endpoint: GetEndpoint(),
 		ConnId:   id.(int64),
-		Message:  msg,
+		Data:     msg,
 	})
 
 }

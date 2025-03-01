@@ -41,7 +41,7 @@ func (*service) AddFriend(ctx context.Context, userId int64, req *pb.AddFriendRe
 	}
 
 	//调用业务服务器接口,获取用户信息
-	resp, err := rpc.GetBusinessIntClient().GetUser(ctx, &pb.GetUserReq{UserId: userId})
+	resp, err := rpc.GetLogicIntClient().GetUser(ctx, &pb.GetUserReq{UserId: userId})
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (*service) AgreeFriend(ctx context.Context, userId int64, req *pb.AgreeFrie
 	}
 
 	//调用业务服务器接口,获取用户信息
-	resp, err := rpc.GetBusinessIntClient().GetUser(ctx, &pb.GetUserReq{UserId: userId})
+	resp, err := rpc.GetLogicIntClient().GetUser(ctx, &pb.GetUserReq{UserId: userId})
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (*service) GetAllFriends(ctx context.Context, userId int64) ([]*pb.Friend, 
 	}
 
 	//通过调用业务服务器获取更多的用户信息
-	resp, err := rpc.GetBusinessIntClient().GetUsers(ctx, &pb.GetUsersReq{
+	resp, err := rpc.GetLogicIntClient().GetUsers(ctx, &pb.GetUsersReq{
 		UserIds: userIds,
 	})
 	if err != nil {

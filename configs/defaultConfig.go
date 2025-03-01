@@ -41,7 +41,6 @@ func (d *DefaultConfig) Build() Configuration {
 		GatewayRpcAddr:          viper.GetString("gateway_rpc_addr"),
 		StateRpcAddr:            viper.GetString("state_rpc_addr"),
 		LogicRPCListenAddr:      viper.GetString("logic_rpc_listen_addr"),
-		BusinessRpcListenAddr:   viper.GetString("business_rpc_listen_addr"),
 
 		NewLogicIntClient: func() pb.LogicIntClient {
 			clientConn, err := grpc.NewClient(viper.GetString("logic_rpc_listen_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
@@ -50,13 +49,7 @@ func (d *DefaultConfig) Build() Configuration {
 			}
 			return pb.NewLogicIntClient(clientConn)
 		},
-		NewBusinessIntClient: func() pb.BusinessIntClient {
-			clientConn, err := grpc.NewClient(viper.GetString("business_rpc_listen_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
-			if err != nil {
-				panic(err)
-			}
-			return pb.NewBusinessIntClient(clientConn)
-		},
+
 		NewGatewayClient: func() pb.GatewayClient {
 			clientConn, err := grpc.NewClient(viper.GetString("gateway_rpc_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
 			if err != nil {

@@ -12,3 +12,4 @@ proto:
 	rm -rf pkg/protocol/proto/pb/*
 	protoc --proto_path=./pkg/protocol/proto --go_out=. --go-grpc_out=. ./pkg/protocol/proto/*.proto
 
+all:  proto

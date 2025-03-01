@@ -1,0 +1,56 @@
+syntax = "proto3";
+option go_package = "pkg/protocol/pb";
+package pb;
+
+enum CMD{
+  Login = 0;                    //登陆
+  Uplink = 1;                   //上行
+  Downlink =2 ;                 //下行
+  Heartbeat =3;                 //心跳
+  Reconn = 4;                   //重连
+  Ack = 5;                      //确认
+}
+
+message Data{
+  CMD cmd = 1;
+  bytes payload = 2;
+}
+
+//以下类型消息将会序列化和反序列化到Data的payload中
+
+message LoginMsg{
+  int64 device_id =1 ;
+  bytes login_body=2 ;                //有效负载
+}
+
+message UplinkMsg{
+  int64 client_id = 1;
+  int64 session_id = 2;
+  bytes uplink_body= 3;                //有效负载
+}
+
+message DownlinkMsg{
+  int64 message_id = 1;                 //最后一条消息id
+  int64 session_id = 2;                 //会话id
+  bytes downlink_body=3 ;                //有效负载
+}
+
+message HeartbeatMsg{
+  bytes heartbeat_body=2 ;                //有效负载
+}
+
+message ReconnMsg{
+  int64 conn_id = 1;            //断开的连接oldConnID
+  bytes reconn_body=2 ;         //有效负载
+}
+
+message AckMsg{
+  int64 code = 1;                   //ack码
+  string message = 2;               //信息
+  CMD toType = 3;                   //ack哪种消息
+  int64 conn_id = 4;                //连接id
+  int64 client_id = 5;              //局部消息序列号
+  int64 session_id = 6;             //会话id
+  int64 message_id = 7 ;                //最后一条消息id
+}
+

@@ -2,7 +2,6 @@ package server
 
 import (
 	"nbim/pkg/logger"
-	"nbim/pkg/tcp"
 	"net/netip"
 	"time"
 
@@ -32,7 +31,6 @@ func StartTCPServer(addr string) {
 }
 
 func onMessage(conn *netreactors.TcpConnection, buf *netreactors.Buffer, t time.Time) {
-	tcp.Unpacking()
 }
 
 func onConnection(conn *netreactors.TcpConnection) {

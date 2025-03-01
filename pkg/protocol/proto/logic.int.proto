@@ -7,6 +7,13 @@ import "logic.ext.proto";
 import "message.ext.proto";
 
 service LogicInt{
+  //权限校验
+  rpc Auth (AuthReq) returns (google.protobuf.Empty);
+  //获取用户信息
+  rpc GetUser (GetUserReq) returns (GetUserResp);
+  //批量获取用户信息
+  rpc GetUsers (GetUsersReq) returns (GetUsersResp);
+
   //登陆
   rpc ConnSignIn (ConnSignInReq ) returns (google.protobuf.Empty);
   //消息同步
@@ -27,6 +34,24 @@ service LogicInt{
   rpc GetDevice (GetDeviceReq) returns (GetDeviceResp) ;
   //服务停止
   rpc ServerStop (ServerStopReq) returns (google.protobuf.Empty);
+}
+
+
+//鉴权请求
+message AuthReq{
+  int64 user_id  =1;                //用户id
+  int64 device_id = 2;              //设备id
+  string token = 3;                 //token
+}
+
+//批量获取用户信息请求
+message GetUsersReq{
+  map<int64 , int32> user_ids = 1;  //用户id
+}
+
+//批量获取用户信息响应
+message GetUsersResp{
+  map<int64,User> users = 1;        //用户信息
 }
 
 

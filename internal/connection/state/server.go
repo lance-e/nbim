@@ -14,6 +14,14 @@ import (
 )
 
 func RunMain() {
+	//init
+	InitCatheState()
+
+	//异步处理rpc请求
+	go func() {
+		HandleRPC()
+	}()
+
 	server := grpc.NewServer() //TODO:UnaryInterceptor
 
 	//优雅关闭
@@ -26,7 +34,7 @@ func RunMain() {
 		server.GracefulStop()
 	}()
 
-	pb.RegisterStateServer(server, &StateServer{})
+	pb.RegisterStateServer(server, CS.Server)
 
 	listen, err := net.Listen("tcp", configs.GlobalConfig.StateRpcAddr)
 	if err != nil {

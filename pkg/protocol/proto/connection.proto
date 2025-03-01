@@ -18,12 +18,12 @@ service State{
 
 message GatewayRequest{
   int64 conn_id= 1;  //id
-  bytes message = 2 ; //数据
+  bytes data= 2 ; //数据
 }
 
 
 message StateRequest{
   string endpoint =1; //状态机endpoint
   int64 conn_id= 2;  //id
-  bytes message = 3 ; //数据
+  bytes data= 3 ; //数据
 }

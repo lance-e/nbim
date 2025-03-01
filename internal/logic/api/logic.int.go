@@ -15,6 +15,24 @@ type LogicIntServer struct {
 	pb.UnsafeLogicIntServer
 }
 
+// 权限校验
+func (s *LogicIntServer) Auth(context.Context, *pb.AuthReq) (*emptypb.Empty, error) {
+
+	return new(emptypb.Empty), nil
+}
+
+// 获取用户信息
+func (s *LogicIntServer) GetUser(context.Context, *pb.GetUserReq) (*pb.GetUserResp, error) {
+
+	return &pb.GetUserResp{}, nil
+}
+
+// 批量获取用户信息
+func (s *LogicIntServer) GetUsers(context.Context, *pb.GetUsersReq) (*pb.GetUsersResp, error) {
+
+	return &pb.GetUsersResp{}, nil
+}
+
 // 登陆
 func (s *LogicIntServer) ConnSignIn(ctx context.Context, req *pb.ConnSignInReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, device.App.ConnSignIn(ctx, req)

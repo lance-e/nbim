@@ -22,5 +22,4 @@ connection_ws_addr: 127.0.0.1:8002
 gateway_rpc_addr: 127.0.0.1:8003
 state_rpc_addr: 127.0.0.1:8004
 logic_rpc_listen_addr: 127.0.0.1:8010
-business_rpc_listen_addr: 127.0.0.1:8020
 

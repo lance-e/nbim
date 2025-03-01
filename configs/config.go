@@ -36,11 +36,9 @@ type Configuration struct {
 	GatewayRpcAddr          string
 	StateRpcAddr            string
 	LogicRPCListenAddr      string
-	BusinessRpcListenAddr   string
 
 	NewConnectionIntClient func() pb.ConnectionIntClient
 	NewLogicIntClient      func() pb.LogicIntClient
-	NewBusinessIntClient   func() pb.BusinessIntClient
 	NewGatewayClient       func() pb.GatewayClient
 	NewStateClient         func() pb.StateClient
 }

@@ -20,6 +20,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	LogicInt_Auth_FullMethodName          = "/pb.LogicInt/Auth"
+	LogicInt_GetUser_FullMethodName       = "/pb.LogicInt/GetUser"
+	LogicInt_GetUsers_FullMethodName      = "/pb.LogicInt/GetUsers"
 	LogicInt_ConnSignIn_FullMethodName    = "/pb.LogicInt/ConnSignIn"
 	LogicInt_Sync_FullMethodName          = "/pb.LogicInt/Sync"
 	LogicInt_ReceiveACK_FullMethodName    = "/pb.LogicInt/ReceiveACK"
@@ -36,6 +39,12 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LogicIntClient interface {
+	// 权限校验
+	Auth(ctx context.Context, in *AuthReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 获取用户信息
+	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error)
+	// 批量获取用户信息
+	GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (*GetUsersResp, error)
 	// 登陆
 	ConnSignIn(ctx context.Context, in *ConnSignInReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 消息同步
@@ -64,6 +73,36 @@ type logicIntClient struct {
 
 func NewLogicIntClient(cc grpc.ClientConnInterface) LogicIntClient {
 	return &logicIntClient{cc}
+}
+
+func (c *logicIntClient) Auth(ctx context.Context, in *AuthReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LogicInt_Auth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicIntClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserResp)
+	err := c.cc.Invoke(ctx, LogicInt_GetUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicIntClient) GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (*GetUsersResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUsersResp)
+	err := c.cc.Invoke(ctx, LogicInt_GetUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *logicIntClient) ConnSignIn(ctx context.Context, in *ConnSignInReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -170,6 +209,12 @@ func (c *logicIntClient) ServerStop(ctx context.Context, in *ServerStopReq, opts
 // All implementations must embed UnimplementedLogicIntServer
 // for forward compatibility.
 type LogicIntServer interface {
+	// 权限校验
+	Auth(context.Context, *AuthReq) (*emptypb.Empty, error)
+	// 获取用户信息
+	GetUser(context.Context, *GetUserReq) (*GetUserResp, error)
+	// 批量获取用户信息
+	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	// 登陆
 	ConnSignIn(context.Context, *ConnSignInReq) (*emptypb.Empty, error)
 	// 消息同步
@@ -200,6 +245,15 @@ type LogicIntServer interface {
 // pointer dereference when methods are called.
 type UnimplementedLogicIntServer struct{}
 
+func (UnimplementedLogicIntServer) Auth(context.Context, *AuthReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Auth not implemented")
+}
+func (UnimplementedLogicIntServer) GetUser(context.Context, *GetUserReq) (*GetUserResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedLogicIntServer) GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
+}
 func (UnimplementedLogicIntServer) ConnSignIn(context.Context, *ConnSignInReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConnSignIn not implemented")
 }
@@ -249,6 +303,60 @@ func RegisterLogicIntServer(s grpc.ServiceRegistrar, srv LogicIntServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&LogicInt_ServiceDesc, srv)
+}
+
+func _LogicInt_Auth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicIntServer).Auth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicInt_Auth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicIntServer).Auth(ctx, req.(*AuthReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicInt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicIntServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicInt_GetUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicIntServer).GetUser(ctx, req.(*GetUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicInt_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicIntServer).GetUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicInt_GetUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicIntServer).GetUsers(ctx, req.(*GetUsersReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _LogicInt_ConnSignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -438,6 +546,18 @@ var LogicInt_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.LogicInt",
 	HandlerType: (*LogicIntServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Auth",
+			Handler:    _LogicInt_Auth_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _LogicInt_GetUser_Handler,
+		},
+		{
+			MethodName: "GetUsers",
+			Handler:    _LogicInt_GetUsers_Handler,
+		},
 		{
 			MethodName: "ConnSignIn",
 			Handler:    _LogicInt_ConnSignIn_Handler,

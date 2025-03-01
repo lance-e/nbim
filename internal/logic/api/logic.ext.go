@@ -16,6 +16,26 @@ type LogicExtServer struct {
 	pb.UnsafeLogicExtServer
 }
 
+// 登陆
+func (s *LogicExtServer) SignIn(context.Context, *pb.SignInReq) (*pb.SignInResp, error) {
+	return &pb.SignInResp{}, nil
+}
+
+// 获取用户信息
+func (s *LogicExtServer) GetUser(context.Context, *pb.GetUserReq) (*pb.GetUserResp, error) {
+	return &pb.GetUserResp{}, nil
+}
+
+// 更新用户信息
+func (s *LogicExtServer) UpdateUser(context.Context, *pb.UpdateUserReq) (*emptypb.Empty, error) {
+	return new(emptypb.Empty), nil
+}
+
+// 搜索用户
+func (s *LogicExtServer) SearchUser(context.Context, *pb.SearchUserReq) (*pb.SearchUserResp, error) {
+	return &pb.SearchUserResp{}, nil
+}
+
 // 注册设备
 func (s *LogicExtServer) RegisterDevice(ctx context.Context, req *pb.RegisterDeviceReq) (*pb.RegisterDeviceResp, error) {
 	return device.App.RegisterDevice(ctx, req)

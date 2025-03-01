@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	LogicExt_SignIn_FullMethodName              = "/pb.LogicExt/SignIn"
+	LogicExt_GetUser_FullMethodName             = "/pb.LogicExt/GetUser"
+	LogicExt_UpdateUser_FullMethodName          = "/pb.LogicExt/UpdateUser"
+	LogicExt_SearchUser_FullMethodName          = "/pb.LogicExt/SearchUser"
 	LogicExt_RegisterDevice_FullMethodName      = "/pb.LogicExt/RegisterDevice"
 	LogicExt_PushRoom_FullMethodName            = "/pb.LogicExt/PushRoom"
 	LogicExt_SendMessageToFriend_FullMethodName = "/pb.LogicExt/SendMessageToFriend"
@@ -42,6 +46,14 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LogicExtClient interface {
+	// 登陆
+	SignIn(ctx context.Context, in *SignInReq, opts ...grpc.CallOption) (*SignInResp, error)
+	// 获取用户信息
+	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error)
+	// 更新用户信息
+	UpdateUser(ctx context.Context, in *UpdateUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 搜索用户
+	SearchUser(ctx context.Context, in *SearchUserReq, opts ...grpc.CallOption) (*SearchUserResp, error)
 	// 注册设备
 	RegisterDevice(ctx context.Context, in *RegisterDeviceReq, opts ...grpc.CallOption) (*RegisterDeviceResp, error)
 	// 推送信息到房间
@@ -82,6 +94,46 @@ type logicExtClient struct {
 
 func NewLogicExtClient(cc grpc.ClientConnInterface) LogicExtClient {
 	return &logicExtClient{cc}
+}
+
+func (c *logicExtClient) SignIn(ctx context.Context, in *SignInReq, opts ...grpc.CallOption) (*SignInResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SignInResp)
+	err := c.cc.Invoke(ctx, LogicExt_SignIn_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserResp)
+	err := c.cc.Invoke(ctx, LogicExt_GetUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicExtClient) UpdateUser(ctx context.Context, in *UpdateUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LogicExt_UpdateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicExtClient) SearchUser(ctx context.Context, in *SearchUserReq, opts ...grpc.CallOption) (*SearchUserResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchUserResp)
+	err := c.cc.Invoke(ctx, LogicExt_SearchUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *logicExtClient) RegisterDevice(ctx context.Context, in *RegisterDeviceReq, opts ...grpc.CallOption) (*RegisterDeviceResp, error) {
@@ -248,6 +300,14 @@ func (c *logicExtClient) GetGroupMember(ctx context.Context, in *GetGroupMemberR
 // All implementations must embed UnimplementedLogicExtServer
 // for forward compatibility.
 type LogicExtServer interface {
+	// 登陆
+	SignIn(context.Context, *SignInReq) (*SignInResp, error)
+	// 获取用户信息
+	GetUser(context.Context, *GetUserReq) (*GetUserResp, error)
+	// 更新用户信息
+	UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error)
+	// 搜索用户
+	SearchUser(context.Context, *SearchUserReq) (*SearchUserResp, error)
 	// 注册设备
 	RegisterDevice(context.Context, *RegisterDeviceReq) (*RegisterDeviceResp, error)
 	// 推送信息到房间
@@ -290,6 +350,18 @@ type LogicExtServer interface {
 // pointer dereference when methods are called.
 type UnimplementedLogicExtServer struct{}
 
+func (UnimplementedLogicExtServer) SignIn(context.Context, *SignInReq) (*SignInResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
+}
+func (UnimplementedLogicExtServer) GetUser(context.Context, *GetUserReq) (*GetUserResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedLogicExtServer) UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedLogicExtServer) SearchUser(context.Context, *SearchUserReq) (*SearchUserResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchUser not implemented")
+}
 func (UnimplementedLogicExtServer) RegisterDevice(context.Context, *RegisterDeviceReq) (*RegisterDeviceResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterDevice not implemented")
 }
@@ -357,6 +429,78 @@ func RegisterLogicExtServer(s grpc.ServiceRegistrar, srv LogicExtServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&LogicExt_ServiceDesc, srv)
+}
+
+func _LogicExt_SignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignInReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicExtServer).SignIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicExt_SignIn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicExtServer).SignIn(ctx, req.(*SignInReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicExtServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicExt_GetUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicExtServer).GetUser(ctx, req.(*GetUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicExt_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicExtServer).UpdateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicExt_UpdateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicExtServer).UpdateUser(ctx, req.(*UpdateUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicExt_SearchUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicExtServer).SearchUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicExt_SearchUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicExtServer).SearchUser(ctx, req.(*SearchUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _LogicExt_RegisterDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -654,6 +798,22 @@ var LogicExt_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.LogicExt",
 	HandlerType: (*LogicExtServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SignIn",
+			Handler:    _LogicExt_SignIn_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _LogicExt_GetUser_Handler,
+		},
+		{
+			MethodName: "UpdateUser",
+			Handler:    _LogicExt_UpdateUser_Handler,
+		},
+		{
+			MethodName: "SearchUser",
+			Handler:    _LogicExt_SearchUser_Handler,
+		},
 		{
 			MethodName: "RegisterDevice",
 			Handler:    _LogicExt_RegisterDevice_Handler,
