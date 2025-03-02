@@ -4,10 +4,12 @@ import (
 	"nbim/configs"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
+	"nbim/pkg/timer"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -16,6 +18,7 @@ import (
 func RunMain() {
 	//init
 	InitCatheState()
+	Wheel = *timer.NewTimeWheel(10, time.Millisecond)
 
 	//异步处理rpc请求
 	go func() {

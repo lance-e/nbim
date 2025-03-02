@@ -11,7 +11,7 @@ import (
 
 // 异步处理rpc请求
 func HandleRPC() {
-	for cmd := range CmdChannel {
+	for cmd := range CS.Server.cmdchannel {
 		switch cmd.CmdType {
 		case CmdReceiveUplinkMessage:
 			//
@@ -21,8 +21,9 @@ func HandleRPC() {
 			}
 			CmdMessageHandler(cmd, pbdata)
 		case CmdClearConnState:
-			fmt.Printf("ClearConnState\n")
-			CS.ClearConnState(cmd.Ctx, cmd.ConnId)
+			fmt.Printf("准备登出-%d,清理状态...\n",cmd.ConnId)                 
+			fmt.Printf("启动重连定时器，超时将清除所有状态\n")
+			CS.connLogout(cmd.Ctx, cmd.ConnId)
 		default:
 			panic("commmand not defined")
 		}
@@ -73,7 +74,7 @@ func login(ctx *cmdContext, data *pb.Data) {
 		return
 	}
 	sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
-	fmt.Printf("已处理登陆\n")
+	fmt.Printf("已处理登陆,connID-%d\n",ctx.ConnId      )    
 }
 
 // 上行消息
@@ -100,26 +101,9 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 		}
 		sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
 
-		//TODO:
-		//-----修改为调用业务层的代码，这里简单echo
-		//推送下行实体消息
-		down := pb.DownlinkMsg{
-			MessageId:    CS.MessageId,
-			SessionId:    up.SessionId,
-			DownlinkBody: up.UplinkBody,
-		}
-		payload, err = proto.Marshal(&down)
-		if err != nil {
-			fmt.Printf("DownlinkMsg marshal failed\n")
-			return
-		}
-		sendMsg(ctx.ConnId, pb.CMD_Downlink, payload)
-		//------------------------------------------
-		//更新状态保存的最后发送的消息
-		err = CS.AppendLastMsg()
-		if err != nil {
-			panic(err)
-		}
+		//TODO:简单echo
+		sendDownlinkMessage(ctx.Ctx, ctx.ConnId, CS.MessageId, up.SessionId, up.UplinkBody)
+
 	}
 	fmt.Print("已处理上行消息\n")
 }
@@ -139,12 +123,14 @@ func heartbeat(ctx *cmdContext, data *pb.Data) {
 
 // 重连
 func reconn(ctx *cmdContext, data *pb.Data) {
+	fmt.Printf("reconn new connID:%d\n", ctx.ConnId)
 	rc := pb.ReconnMsg{}
 	err := proto.Unmarshal(data.GetPayload(), &rc)
 	if err != nil {
 		fmt.Println("reconnMsg unmarshal failed")
 		return
 	}
+	fmt.Printf("reconn old ConnID:%d\n", rc.ConnId)
 	var code int64
 	msg := "reconnect OK"
 	err = CS.connReconn(ctx.Ctx, rc.GetConnId(), ctx.ConnId)
@@ -182,7 +168,51 @@ func ack(ctx *cmdContext, data *pb.Data) {
 	fmt.Printf("已处理下行消息ack\n")
 }
 
-// 发送下行消息
+// 发送下行实体消息
+// TODO:
+// -----修改为调用业务层的代码，这里简单直接echo
+func sendDownlinkMessage(ctx *context.Context, connID, msgId, sessionId int64, body []byte) {
+	//推送下行实体消息
+	down := pb.DownlinkMsg{
+		MessageId:    msgId,
+		SessionId:    sessionId,
+		DownlinkBody: body,
+	}
+	payload, err := proto.Marshal(&down)
+	if err != nil {
+		fmt.Printf("DownlinkMsg marshal failed\n")
+		return
+	}
+	sendMsg(connID, pb.CMD_Downlink, payload)
+	//------------------------------------------
+	//更新状态保存的最后发送的消息
+	err = CS.AppendLastMsg(ctx, connID, &down)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func reSendDownlinkMessage(connID int64) {
+	down, err := CS.GetLastMsg(context.Background(), connID)
+	if err != nil {
+		fmt.Print("reSendDownlinkMessage error:%s\n", err.Error())
+	}
+	if down == nil {
+		return
+	}
+	downData, err := proto.Marshal(down)
+	if err != nil {
+		fmt.Printf("reSendDownlinkMessage unmarshal failed\n")
+		return
+	}
+	sendMsg(connID, pb.CMD_Downlink, downData)
+	//重置消息定时器
+	if state, ok := CS.ConnIdToConnState.Load(connID); ok {
+		state.(*connState).SetMessageTimer()
+	}
+}
+
+// 发送消息
 func sendMsg(connID int64, cmd pb.CMD, payload []byte) {
 	data := pb.Data{
 		Cmd:     cmd,

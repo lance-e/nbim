@@ -20,10 +20,10 @@ type TimeWheel struct {
 }
 
 type TaskElement struct {
-	task  func() //定时人物逻辑的闭包
-	pos   int    //在时间槽中的索引
-	cycle int    //轮次
-	key   string //任务唯一标识
+	Task  func() //定时任务逻辑的闭包
+	Pos   int    //在时间槽中的索引
+	Cycle int    //轮次
+	Key   string //任务唯一标识
 }
 
 func NewTimeWheel(slot int, interval time.Duration) *TimeWheel {
@@ -52,6 +52,13 @@ func NewTimeWheel(slot int, interval time.Duration) *TimeWheel {
 	go tw.run()
 
 	return tw
+}
+
+func NewTaskElement(key string, f func()) *TaskElement {
+	return &TaskElement{
+		Key:  key,
+		Task: f,
+	}
 }
 
 func (tw *TimeWheel) run() {
@@ -85,14 +92,9 @@ func (tw *TimeWheel) Stop() {
 		tw.stopCh <- struct{}{}
 	})
 }
-func (tw *TimeWheel) AddTask(key string, task func(), excuteAt time.Time) {
-	p, c := tw.getPosAndCycle(excuteAt)
-	tw.addTaskCh <- &TaskElement{
-		task:  task,
-		key:   key,
-		pos:   p,
-		cycle: c,
-	}
+func (tw *TimeWheel) AddTask(te *TaskElement, excuteAt time.Time) {
+	te.Pos, te.Cycle = tw.getPosAndCycle(excuteAt)
+	tw.addTaskCh <- te
 }
 
 func (tw *TimeWheel) RemoveTask(key string) {
@@ -119,8 +121,8 @@ func (tw *TimeWheel) excute(list *list.List) {
 	for e := list.Front(); e != nil; {
 		task, _ := e.Value.(*TaskElement)
 		//不是该轮的任务
-		if task.cycle > 0 {
-			task.cycle--
+		if task.Cycle > 0 {
+			task.Cycle--
 			e = e.Next()
 			continue
 		}
@@ -134,24 +136,24 @@ func (tw *TimeWheel) excute(list *list.List) {
 				}
 			}()
 
-			task.task()
+			task.Task()
 		}()
 
 		//清除该定时任务
 		next := e.Next()
 		list.Remove(e)
-		delete(tw.keyToTask, task.key)
+		delete(tw.keyToTask, task.Key)
 		e = next
 	}
 }
 
 func (tw *TimeWheel) addTask(task *TaskElement) {
-	list := tw.slots[task.pos]
-	if _, ok := tw.keyToTask[task.key]; ok {
-		tw.removeTask(task.key)
+	list := tw.slots[task.Pos]
+	if _, ok := tw.keyToTask[task.Key]; ok {
+		tw.removeTask(task.Key)
 	}
 	le := list.PushBack(task)
-	tw.keyToTask[task.key] = le
+	tw.keyToTask[task.Key] = le
 }
 
 func (tw *TimeWheel) removeTask(key string) {
@@ -160,7 +162,7 @@ func (tw *TimeWheel) removeTask(key string) {
 		return
 	}
 	te, _ := elment.Value.(*TaskElement)
-	tw.slots[te.pos].Remove(elment)
+	tw.slots[te.Pos].Remove(elment)
 }
 func (tw *TimeWheel) getPosAndCycle(excuteAt time.Time) (int, int) {
 	delay := int(time.Until(excuteAt))

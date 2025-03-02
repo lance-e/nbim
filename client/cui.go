@@ -262,7 +262,7 @@ func main() {
 		log.Panicln(err)
 	}
 	go func() {
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 		// 重新连接
 		chat.ReConn()
 	}()

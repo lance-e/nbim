@@ -29,6 +29,7 @@ type Configuration struct {
 	PushRoomSubscribeNum int
 	PushAllSubscribeNum  int
 	GatewayNodeId        int
+	StateCatheSlotNum    int
 
 	ConnectionLocalAddr     string
 	ConnectionTCPListenAddr string

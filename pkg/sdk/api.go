@@ -49,9 +49,9 @@ func NewChat(ip net.IP, port int, nick, userID string, sessionID int64) *Chat {
 		closeChan:        make(chan struct{}),
 		MsgClientIDTable: make(map[int64]int64),
 	}
-	go chat.loop()
-	chat.login()
-	go chat.heartbeat()
+	go chat.loop()      //处理可读事件(接收消息)
+	chat.login()        //登陆
+	go chat.heartbeat() //周期性发送心跳
 	return chat
 }
 func (chat *Chat) Send(msg *Message) {
@@ -88,7 +88,8 @@ func (chat *Chat) ReConn() {
 	defer chat.Unlock()
 	// 需要重置clientId
 	chat.MsgClientIDTable = make(map[int64]int64)
-	chat.conn.reConn()
+	chat.conn.reConn() //重新启动一个tcp连接
+	time.Sleep(5 * time.Second)
 	chat.reConn()
 }
 
@@ -160,7 +161,7 @@ func (chat *Chat) reConn() {
 }
 
 func (chat *Chat) heartbeat() {
-	tc := time.NewTicker(5 * time.Second)
+	tc := time.NewTicker(1 * time.Second)
 	defer func() {
 		chat.heartbeat()
 	}()

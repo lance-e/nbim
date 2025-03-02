@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var CmdChannel chan *cmdContext
+// var CmdChannel chan *cmdContext
 
 const (
 	CmdReceiveUplinkMessage = 1

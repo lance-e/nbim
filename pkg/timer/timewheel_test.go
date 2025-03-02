@@ -16,18 +16,18 @@ func TestTimeWheel(t *testing.T) {
 	defer tw.Stop()
 
 	var executed bool
-	tw.AddTask("test1", func() {
+	tw.AddTask(timer.NewTaskElement("test1", func() {
 		executed = true
-	}, time.Now().Add(2*time.Second))
+	}), time.Now().Add(2*time.Second))
 
 	time.Sleep(3 * time.Second)
 	assert.True(t, executed, "task should be executed")
 
 	// 删除任务测试
 	executed = false
-	tw.AddTask("test2", func() {
+	tw.AddTask(timer.NewTaskElement("test2", func() {
 		executed = true
-	}, time.Now().Add(2*time.Second))
+	}), time.Now().Add(2*time.Second))
 	tw.RemoveTask("test2")
 	time.Sleep(3 * time.Second)
 	assert.False(t, executed, "task should not be executed")
@@ -44,10 +44,10 @@ func TestTimeWheel(t *testing.T) {
 
 	tw4 := timer.NewTimeWheel(10, time.Second)
 	var executed2 bool
-	tw4.AddTask("test3", func() {
+	tw4.AddTask(timer.NewTaskElement("test3", func() {
 		executed2 = true
-	}, time.Now().Add(2*time.Second))
-	tw4.AddTask("test3", func() {}, time.Now().Add(3*time.Second)) //覆盖之前的任务
+	}), time.Now().Add(2*time.Second))
+	tw4.AddTask(timer.NewTaskElement("test3", func() {}), time.Now().Add(3*time.Second)) //覆盖之前的任务
 	time.Sleep(3 * time.Second)
 	assert.False(t, executed2, "old task should not be executed")
 	tw4.Stop()
@@ -65,7 +65,7 @@ func TestTimeWheel(t *testing.T) {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			tw6.AddTask(strconv.Itoa(id), func() {}, time.Now().Add(time.Millisecond*500))
+			tw6.AddTask(timer.NewTaskElement(strconv.Itoa(id), func() {}), time.Now().Add(time.Millisecond*500))
 		}(i)
 	}
 	wg.Wait()
@@ -76,9 +76,9 @@ func TestTimeWheel(t *testing.T) {
 	defer tw7.Stop()
 
 	var executed3 bool
-	tw7.AddTask("test4", func() {
+	tw7.AddTask(timer.NewTaskElement("test4", func() {
 		executed3 = true
-	}, time.Now().Add(time.Millisecond*600)) //需要跨一轮
+	}), time.Now().Add(time.Millisecond*600)) //需要跨一轮
 
 	time.Sleep(time.Second)
 	assert.True(t, executed3, "task should be executed after one cycle")
@@ -87,9 +87,9 @@ func TestTimeWheel(t *testing.T) {
 	tw8 := timer.NewTimeWheel(10, time.Second)
 	defer tw8.Stop()
 
-	tw8.AddTask("test5", func() {
+	tw8.AddTask(timer.NewTaskElement("test5", func() {
 		panic("test panic")
-	}, time.Now().Add(1*time.Second))
+	}), time.Now().Add(1*time.Second))
 
 	time.Sleep(2 * time.Second) // 确保有足够时间让panic发生
 }

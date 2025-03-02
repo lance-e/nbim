@@ -3,63 +3,80 @@ package state
 import (
 	"context"
 	"fmt"
+	"nbim/pkg/protocol/pb"
+	"nbim/pkg/rpc"
 	"nbim/pkg/timer"
-	"sync"
+	"time"
 )
 
-var CS *catheState
-
-type catheState struct {
-	MessageId     int64
-	ConnIdToState sync.Map
-	Server        *StateServer
-}
+// 全局时间轮
+var Wheel timer.TimeWheel
 
 // 连接状态
 type connState struct {
-	connID         int64
-	deviceID       int64
-	messageTimer   *timer.TimeWheel //消息定时器
-	reconnectTimer *timer.TimeWheel //重连定时器
-	heartbeatTimer *timer.TimeWheel //心跳定时器
+	connID        int64
+	deviceID      int64
+	messageTask   *timer.TaskElement //消息定时任务
+	reconnectTask *timer.TaskElement //重连定时任务
+	heartbeatTask *timer.TaskElement //心跳定时任务
 }
 
-func InitCatheState() {
-	CS = &catheState{}
-	CS.Server = &StateServer{cmdchannel: make(chan *cmdContext, 2048)}
+func NewConnState(connId int64, deviceId int64) *connState {
+	state := &connState{
+		connID:   connId,
+		deviceID: deviceId,
+	}
+
+	//-------------reconnect
+	state.reconnectTask = timer.NewTaskElement(fmt.Sprintf("%d|reconnect", connId), func() {
+		//重连超时，清除连接状态
+		fmt.Print("滴滴滴，重连定时器超时\n")
+		state.clear()
+	})
+	//-------------
+
+	//-------------heartbeat
+	state.heartbeatTask = timer.NewTaskElement(fmt.Sprintf("%d|heartbeat", connId), func() {
+		fmt.Print("滴滴滴，心跳定时器超时\n")
+		//心跳超时,强制断开连接
+		rpc.GetGatewayClient().CloseConn(context.TODO(), &pb.GatewayRequest{
+			ConnId: connId,
+		})
+		//注意这里不需要启动重连定时器,因为上面的rpc强制断开连接后，会回调到tcpserver，然后执行ClearConnState rpc,那里会启动重连定时器和执行清除状态逻辑
+	})
+	//-------------
+
+	//全局时间轮中添加心跳任务
+	Wheel.AddTask(state.heartbeatTask, time.Now().Add(5*time.Second))
+	return state
 }
 
-func (c *catheState) ClearConnState(ctx *context.Context, connID int64) {
+func (c *connState) SetMessageTimer() {
+	//清除之前的定时任务
+	if c.messageTask != nil {
+		Wheel.RemoveTask(c.messageTask.Key)
+		c.messageTask = nil
+	}
 
+	c.messageTask = timer.NewTaskElement(fmt.Sprintf("%d|message", c.connID), func() {
+		fmt.Print("滴滴滴，消息定时器超时\n")
+		//重发消息
+		reSendDownlinkMessage(c.connID)
+	})
 }
 
-// 登陆
-func (c *catheState) connLogin(ctx *context.Context, deviceId int64, connID int64) error {
-	fmt.Printf("CS.connLogin\n")
-	return nil
-}
-
-func (c *catheState) compareAndIncrementClientID(ctx *context.Context, connID int64, clientID int64, sessionID int64) bool {
-	fmt.Printf("CS.compareAndIncrementClientID\n")
-	return true
-}
-
-func (c *catheState) connReconn(ctx *context.Context, oldConnID, newConnID int64) error {
-	fmt.Print("CS.connReconn\n")
-	return nil
-}
-
-func (c *catheState) connAck(ctx *context.Context, connID int64, sessionID int64, msgID int64) {
-	fmt.Print("CS.connAck\n")
-}
-
-// 重置心跳计时器
-func (c *catheState) reSetHeartbeatTimer(connId int64) {
-
-	fmt.Print("CS.reSetHeartbeatTimer\n")
-}
-
-func (c *catheState) AppendLastMsg() error {
-	//ctx *context.Context, connId int64, downlinkMsg pb.DownlinkMsg
-	return nil
+// clearConnState:执行到该函数说明之前的超时任务已经执行，直接清除
+func (c *connState) clear() {
+	if c.messageTask != nil {
+		Wheel.RemoveTask(c.messageTask.Key)
+	}
+	if c.reconnectTask != nil {
+		Wheel.RemoveTask(c.reconnectTask.Key)
+	}
+	if c.heartbeatTask != nil {
+		Wheel.RemoveTask(c.heartbeatTask.Key)
+	}
+	//TODO:清除其他状态,memory ,redis,router等
+	CS.ConnIdToConnState.Delete(c.connID)
+	fmt.Printf("已清除[%d]所有状态!\n",c.connID)               
 }

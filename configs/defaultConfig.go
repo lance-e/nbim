@@ -34,6 +34,7 @@ func (d *DefaultConfig) Build() Configuration {
 		PushRoomSubscribeNum: viper.GetInt("push_room_subscribe_num"),
 		PushAllSubscribeNum:  viper.GetInt("push_all_subscribe_num"),
 		GatewayNodeId:        viper.GetInt("gateway_node_id"),
+		StateCatheSlotNum:    viper.GetInt("state_cathe_slot_num"),
 
 		ConnectionLocalAddr:     viper.GetString("connection_local_addr"),
 		ConnectionTCPListenAddr: viper.GetString("connection_tcp_addr"),
