@@ -89,7 +89,6 @@ func (chat *Chat) ReConn() {
 	// 需要重置clientId
 	chat.MsgClientIDTable = make(map[int64]int64)
 	chat.conn.reConn() //重新启动一个tcp连接
-	time.Sleep(5 * time.Second)
 	chat.reConn()
 }
 

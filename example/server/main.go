@@ -1,6 +1,7 @@
-package server
+package main
 
 import (
+	"fmt"
 	"nbim/pkg/logger"
 	"net/netip"
 	"time"
@@ -15,7 +16,6 @@ var (
 
 // 启动TCP服务端
 func StartTCPServer(addr string) {
-	netreactors.Dlog.TurnOnLog()
 	ev = netreactors.NewEventLoop()
 	address, err := netip.ParseAddrPort(addr)
 	if err != nil {
@@ -31,6 +31,9 @@ func StartTCPServer(addr string) {
 }
 
 func onMessage(conn *netreactors.TcpConnection, buf *netreactors.Buffer, t time.Time) {
+	fmt.Printf("%s\n", buf.RetrieveAllString())
+	fmt.Printf("收到消息，我要开始主动断开tcp连接了\n")
+	conn.ForceClose()
 }
 
 func onConnection(conn *netreactors.TcpConnection) {

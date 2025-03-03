@@ -228,7 +228,7 @@ func pasteDown(g *gocui.Gui, cv *gocui.View) error {
 
 func main() {
 	// step1 创建chat的核心对象
-	chat = sdk.NewChat(net.ParseIP("127.0.0.1"), 8001, "lance", "12312321", 2131)
+	chat = sdk.NewChat(net.ParseIP("127.0.0.1"), 8001, "lance", "12312321", 0)
 	// step2 创建 GUI 图层对象并进行参与与回调函数的配置
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -262,9 +262,9 @@ func main() {
 		log.Panicln(err)
 	}
 	go func() {
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 		// 重新连接
-		chat.ReConn()
+		// chat.ReConn()
 	}()
 	// 启动消费函数
 	go doRecv(g)

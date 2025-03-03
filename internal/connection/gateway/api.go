@@ -42,6 +42,7 @@ func (g *GatewayServer) SendDownlinkMessage(ctx context.Context, req *pb.Gateway
 
 // gateway server: 断开指定长连接 ,由状态服务器调用
 func (g *GatewayServer) CloseConn(ctx context.Context, req *pb.GatewayRequest) (*emptypb.Empty, error) {
+	logger.Logger.Debug("CloseConn rpc")
 	newctx := context.TODO()
 	g.cmdchannel <- &cmdContext{
 		Ctx:     &newctx,

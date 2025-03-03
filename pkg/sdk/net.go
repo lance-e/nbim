@@ -7,7 +7,6 @@ import (
 	"nbim/pkg/tcp"
 	"net"
 	"sync/atomic"
-	"time"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -72,7 +71,6 @@ func handPushMsg(c *connect, data []byte) *Message {
 
 func (c *connect) reConn() {
 	c.conn.Close()
-	time.Sleep(1 * time.Second)
 	addr := &net.TCPAddr{IP: c.ip, Port: c.port}
 	conn, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {

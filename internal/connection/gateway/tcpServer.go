@@ -71,8 +71,7 @@ func onConnection(conn *netreactors.TcpConnection) {
 	} else {
 		//关闭连接
 		if id, ok := TcpConnToConnID.Load(conn); ok {
-			//1.主动断开：当由state调用gateway提供的close rpc后，会执行这里的回调，再调用state提供的清除连接状态 rpc.
-			//2.被动断开：当连接被动断开了，执行这里的回调，再调用state提供的清除连接状态 rpc.
+			//被动断开：当连接被动断开了(由客户端断开)，执行这里的回调，再调用state提供的清除连接状态 rpc.
 			rpc.GetStateClient().ClearConnState(context.TODO(), &pb.StateRequest{
 				Endpoint: GetEndpoint(),
 				ConnId:   id.(int64),

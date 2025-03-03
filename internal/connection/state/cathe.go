@@ -38,9 +38,8 @@ func (c *catheState) connLogout(ctx *context.Context, connID int64) {
 	if state, ok := c.ConnIdToConnState.Load(connID); ok {
 		connS := state.(*connState)
 		//原先的连接关闭的两种情况：
-		//1.客户端主动关闭：该连接的心跳定时器未关
-		//2.心跳超时，定时器超时才关闭的连接
-		//所以需要在这里关闭心跳定时器，不然1这种情况下，之前连接的心跳定时器仍会在超时后,再次启动重连定时器,(虽然好像也没什么多大问题)
+		//1.客户端主动关闭:该连接的心跳定时器未关
+		//2.服务端主动关闭: 心跳超时，定时器超时才关闭的连接
 		Wheel.RemoveTask(connS.heartbeatTask.Key)
 		//创建重连定时器
 		Wheel.AddTask(connS.reconnectTask, time.Now().Add(10*time.Second))
@@ -74,7 +73,7 @@ func (c *catheState) connReconn(ctx *context.Context, oldConnID, newConnID int64
 }
 
 func (c *catheState) connAck(ctx *context.Context, connID int64, sessionID int64, msgID int64) {
-	if state, ok := c.ConnIdToConnState.LoadAndDelete(connID); ok {
+	if state, ok := c.ConnIdToConnState.Load(connID); ok {
 
 		//删除缓存
 		key := fmt.Sprintf(db.LastMessageKey, GetSlot(connID), connID)

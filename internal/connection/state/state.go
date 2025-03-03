@@ -42,7 +42,9 @@ func NewConnState(connId int64, deviceId int64) *connState {
 		rpc.GetGatewayClient().CloseConn(context.TODO(), &pb.GatewayRequest{
 			ConnId: connId,
 		})
-		//注意这里不需要启动重连定时器,因为上面的rpc强制断开连接后，会回调到tcpserver，然后执行ClearConnState rpc,那里会启动重连定时器和执行清除状态逻辑
+		//主动调用closecConn rpc直接就断开了连接，不会再经过onconnnetion回调
+		//需要启动重连定时器和执行清除状态逻辑
+		Wheel.AddTask(state.reconnectTask, time.Now().Add(10*time.Second))
 	})
 	//-------------
 
@@ -57,12 +59,13 @@ func (c *connState) SetMessageTimer() {
 		Wheel.RemoveTask(c.messageTask.Key)
 		c.messageTask = nil
 	}
-
 	c.messageTask = timer.NewTaskElement(fmt.Sprintf("%d|message", c.connID), func() {
-		fmt.Print("滴滴滴，消息定时器超时\n")
+		fmt.Printf("滴滴滴，我的ack怎么还没到?\n")
 		//重发消息
 		reSendDownlinkMessage(c.connID)
 	})
+
+	Wheel.AddTask(c.messageTask, time.Now().Add(100*time.Millisecond))
 }
 
 // clearConnState:执行到该函数说明之前的超时任务已经执行，直接清除

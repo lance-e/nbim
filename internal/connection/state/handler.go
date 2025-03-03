@@ -21,7 +21,7 @@ func HandleRPC() {
 			}
 			CmdMessageHandler(cmd, pbdata)
 		case CmdClearConnState:
-			fmt.Printf("准备登出-%d,清理状态...\n",cmd.ConnId)                 
+			fmt.Printf("客户端登出-%d,清理状态...\n",cmd.ConnId)                   
 			fmt.Printf("启动重连定时器，超时将清除所有状态\n")
 			CS.connLogout(cmd.Ctx, cmd.ConnId)
 		default:
@@ -74,7 +74,9 @@ func login(ctx *cmdContext, data *pb.Data) {
 		return
 	}
 	sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
-	fmt.Printf("已处理登陆,connID-%d\n",ctx.ConnId      )    
+	//TODO:测试
+	// sendDownlinkMessage(ctx.Ctx, ctx.ConnId, 0, 0, []byte("welcome!\n"))
+	fmt.Printf("login!!!:deviceId-%d,connID-%d\n", login.DeviceId, ctx.ConnId)
 }
 
 // 上行消息
@@ -101,8 +103,12 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 		}
 		sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
 
-		//TODO:简单echo
-		sendDownlinkMessage(ctx.Ctx, ctx.ConnId, CS.MessageId, up.SessionId, up.UplinkBody)
+		//TODO:调用业务层,在存储后，下发消息
+		CS.ConnIdToConnState.Range(func(key, value any) bool {
+			// 给每一个连接发
+			sendDownlinkMessage(ctx.Ctx, key.(int64), CS.MessageId, up.SessionId, up.UplinkBody)
+			return true
+		})
 
 	}
 	fmt.Print("已处理上行消息\n")
@@ -170,7 +176,6 @@ func ack(ctx *cmdContext, data *pb.Data) {
 
 // 发送下行实体消息
 // TODO:
-// -----修改为调用业务层的代码，这里简单直接echo
 func sendDownlinkMessage(ctx *context.Context, connID, msgId, sessionId int64, body []byte) {
 	//推送下行实体消息
 	down := pb.DownlinkMsg{
