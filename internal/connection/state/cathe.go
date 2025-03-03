@@ -89,10 +89,40 @@ func (c *catheState) connAck(ctx *context.Context, connID int64, sessionID int64
 	}
 }
 
-func (c *catheState) compareAndIncrementClientID(ctx *context.Context, connID int64, clientID int64, sessionID int64) bool {
-	//TODO:
-	fmt.Printf("CS.compareAndIncrementClientID\n")
-	return true
+func (c *catheState) compareAndIncrementClientID(ctx *context.Context, connID int64, oldClientID int64, sessionID int64) bool {
+	slot := GetSlot(connID)
+	key := fmt.Sprintf(db.MaxClientIDKey, slot, connID, sessionID)
+	//TODO:lua脚本优化,实现原子性
+	//FIXME:未保证原子性，出错就不恢复
+	result, err := db.RedisCli.Exists(key).Result()
+	if err != nil {
+		return false
+	}
+	//不存在
+	if result == 0 {
+		db.RedisCli.Set(key, 0, db.TTL7Day)
+	}
+	//获取value
+	value, err := db.RedisCli.Get(key).Int()
+	if err != nil {
+		return false
+	}
+	//对比
+	if value == int(oldClientID) {
+		//自增
+		err = db.RedisCli.Incr(key).Err()
+		if err != nil {
+			return false
+		}
+		//过期时间
+		err = db.RedisCli.Expire(key, db.TTL7Day).Err()
+		if err != nil {
+			return false
+		}
+		return true
+	} else {
+		return false
+	}
 }
 
 // 重置心跳计时器

@@ -4,7 +4,7 @@ package pb;
 
 import "google/protobuf/empty.proto";
 import "logic.ext.proto";
-import "message.ext.proto";
+import "message.proto";
 
 service LogicInt{
   //权限校验
@@ -74,7 +74,7 @@ message SyncReq{
 }
 //响应:
 message SyncResp{
-  repeated Message message = 1; //消息列表
+  repeated Data messages = 1; //消息列表
   bool has_more = 2 ;           //是否有更多数据
 }
 

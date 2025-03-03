@@ -38,10 +38,9 @@ type Configuration struct {
 	StateRpcAddr            string
 	LogicRPCListenAddr      string
 
-	NewConnectionIntClient func() pb.ConnectionIntClient
-	NewLogicIntClient      func() pb.LogicIntClient
-	NewGatewayClient       func() pb.GatewayClient
-	NewStateClient         func() pb.StateClient
+	NewLogicIntClient func() pb.LogicIntClient
+	NewGatewayClient  func() pb.GatewayClient
+	NewStateClient    func() pb.StateClient
 }
 
 func init() {
