@@ -14,7 +14,7 @@ service LogicInt{
   //批量获取用户信息
   rpc GetUsers (GetUsersReq) returns (GetUsersResp);
 
-  //登陆
+  // 长连接登陆,建立tcp连接时调用
   rpc ConnSignIn (ConnSignInReq ) returns (google.protobuf.Empty);
   //消息同步
   rpc Sync (SyncReq) returns (SyncResp);

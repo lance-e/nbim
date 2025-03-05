@@ -11,8 +11,10 @@ var (
 	gatewayClient  pb.GatewayClient
 	stateClient    pb.StateClient
 	logicIntClient pb.LogicIntClient
+	logicExtClient pb.LogicExtClient
 )
 
+// 获取某一个gateway客户端
 func GetGatewayClient() pb.GatewayClient {
 	if gatewayClient == nil {
 		gatewayClient = configs.GlobalConfig.NewGatewayClient()
@@ -20,6 +22,7 @@ func GetGatewayClient() pb.GatewayClient {
 	return gatewayClient
 }
 
+// 获取某一个state客户端
 func GetStateClient() pb.StateClient {
 	if stateClient == nil {
 		stateClient = configs.GlobalConfig.NewStateClient()
@@ -33,4 +36,12 @@ func GetLogicIntClient() pb.LogicIntClient {
 		logicIntClient = configs.GlobalConfig.NewLogicIntClient()
 	}
 	return logicIntClient
+}
+
+// 获取某一个logic客户端
+func GetLogicExtClient() pb.LogicExtClient {
+	if logicExtClient == nil {
+		logicExtClient = configs.GlobalConfig.NewLogicExtClient()
+	}
+	return logicExtClient
 }

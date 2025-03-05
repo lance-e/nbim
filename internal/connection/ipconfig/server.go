@@ -2,6 +2,7 @@ package ipconfig
 
 import (
 	"context"
+	"nbim/configs"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,5 +43,5 @@ func RunMain() {
 		})
 
 	})
-	engine.Run(":6789")
+	engine.Run(configs.GlobalConfig.ConnectionIpconfigAddr)
 }

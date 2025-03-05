@@ -8,6 +8,7 @@ require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/goccy/go-json v0.10.5
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/golang/protobuf v1.5.4
 	github.com/gookit/color v1.5.4
 	github.com/gorilla/websocket v1.5.3

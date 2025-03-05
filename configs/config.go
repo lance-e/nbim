@@ -34,11 +34,16 @@ type Configuration struct {
 	ConnectionLocalAddr     string
 	ConnectionTCPListenAddr string
 	ConnectionWSListenAddr  string
+	ConnectionIpconfigAddr  string
+	ConnectionLogicAddr     string
 	GatewayRpcAddr          string
 	StateRpcAddr            string
-	LogicRPCListenAddr      string
+	LogicRpcAddr            string
+	/* LogicRpcIntAddr         string */
+	/* LogicRpcExtAddr         string */
 
 	NewLogicIntClient func() pb.LogicIntClient
+	NewLogicExtClient func() pb.LogicExtClient
 	NewGatewayClient  func() pb.GatewayClient
 	NewStateClient    func() pb.StateClient
 }

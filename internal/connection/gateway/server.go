@@ -68,7 +68,7 @@ func RunMain() {
 		panic(err)
 	}
 
-	logger.Logger.Info("connection RPC 服务启动")
+	logger.Logger.Info("gateway RPC 服务启动")
 	err = server.Serve(listen)
 	if err != nil {
 		logger.Logger.Error("serve error", zap.Error(err))

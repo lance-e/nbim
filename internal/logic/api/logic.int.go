@@ -33,7 +33,7 @@ func (s *LogicIntServer) GetUsers(context.Context, *pb.GetUsersReq) (*pb.GetUser
 	return &pb.GetUsersResp{}, nil
 }
 
-// 登陆
+// 长连接登陆,建立tcp连接时调用
 func (s *LogicIntServer) ConnSignIn(ctx context.Context, req *pb.ConnSignInReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, device.App.ConnSignIn(ctx, req)
 }

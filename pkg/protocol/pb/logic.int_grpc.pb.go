@@ -45,7 +45,7 @@ type LogicIntClient interface {
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error)
 	// 批量获取用户信息
 	GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (*GetUsersResp, error)
-	// 登陆
+	// 长连接登陆
 	ConnSignIn(ctx context.Context, in *ConnSignInReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 消息同步
 	Sync(ctx context.Context, in *SyncReq, opts ...grpc.CallOption) (*SyncResp, error)
@@ -215,7 +215,7 @@ type LogicIntServer interface {
 	GetUser(context.Context, *GetUserReq) (*GetUserResp, error)
 	// 批量获取用户信息
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
-	// 登陆
+	// 长连接登陆
 	ConnSignIn(context.Context, *ConnSignInReq) (*emptypb.Empty, error)
 	// 消息同步
 	Sync(context.Context, *SyncReq) (*SyncResp, error)

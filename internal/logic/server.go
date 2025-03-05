@@ -1,30 +1,20 @@
-package state
+package logic
 
 import (
 	"nbim/configs"
+	"nbim/internal/logic/api"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
-	"nbim/pkg/timer"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 func RunMain() {
-	//init
-	InitCatheState()
-	Wheel = *timer.NewTimeWheel(10, time.Millisecond)
-
-	//异步处理rpc请求
-	go func() {
-		HandleRPC()
-	}()
-
 	server := grpc.NewServer() //TODO:UnaryInterceptor
 
 	//优雅关闭
@@ -37,14 +27,16 @@ func RunMain() {
 		server.GracefulStop()
 	}()
 
-	pb.RegisterStateServer(server, CS.Server)
+	//将对外和对内的服务都注册在同一个端口，减少系统复杂度
+	pb.RegisterLogicExtServer(server, &api.LogicExtServer{})
+	pb.RegisterLogicIntServer(server, &api.LogicIntServer{})
 
-	listen, err := net.Listen("tcp", configs.GlobalConfig.StateRpcAddr)
+	listen, err := net.Listen("tcp", configs.GlobalConfig.LogicRpcAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Logger.Info("state RPC 服务启动")
+	logger.Logger.Info("logic RPC 服务启动")
 	err = server.Serve(listen)
 	if err != nil {
 		logger.Logger.Error("serve error", zap.Error(err))

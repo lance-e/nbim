@@ -39,16 +39,28 @@ func (d *DefaultConfig) Build() Configuration {
 		ConnectionLocalAddr:     viper.GetString("connection_local_addr"),
 		ConnectionTCPListenAddr: viper.GetString("connection_tcp_addr"),
 		ConnectionWSListenAddr:  viper.GetString("connection_ws_addr"),
+		ConnectionIpconfigAddr:  viper.GetString("connection_ipconfig_addr"),
+		ConnectionLogicAddr:     viper.GetString("connection_logic_addr"),
 		GatewayRpcAddr:          viper.GetString("gateway_rpc_addr"),
 		StateRpcAddr:            viper.GetString("state_rpc_addr"),
-		LogicRPCListenAddr:      viper.GetString("logic_rpc_listen_addr"),
+		LogicRpcAddr:            viper.GetString("logic_rpc_addr"),
+		/* LogicRpcIntAddr:         viper.GetString("logic_rpc_int_addr"), */
+		/* LogicRpcExtAddr:         viper.GetString("logic_rpc_ext_addr"), */
 
 		NewLogicIntClient: func() pb.LogicIntClient {
-			clientConn, err := grpc.NewClient(viper.GetString("logic_rpc_listen_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
+			clientConn, err := grpc.NewClient(viper.GetString("logic_rpc_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
 			if err != nil {
 				panic(err)
 			}
 			return pb.NewLogicIntClient(clientConn)
+		},
+
+		NewLogicExtClient: func() pb.LogicExtClient {
+			clientConn, err := grpc.NewClient(viper.GetString("logic_rpc_addr"), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(interceptor))
+			if err != nil {
+				panic(err)
+			}
+			return pb.NewLogicExtClient(clientConn)
 		},
 
 		NewGatewayClient: func() pb.GatewayClient {

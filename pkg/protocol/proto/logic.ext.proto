@@ -5,6 +5,8 @@ package pb;
 import "google/protobuf/empty.proto";
 
 service LogicExt{
+  //注册设备
+  rpc RegisterDevice (RegisterDeviceReq) returns (RegisterDeviceResp);
   //登陆
   rpc SignIn (SignInReq) returns (SignInResp) ;
   //获取用户信息
@@ -14,8 +16,7 @@ service LogicExt{
   //搜索用户
   rpc SearchUser (SearchUserReq) returns (SearchUserResp);
 
-  //注册设备
-  rpc RegisterDevice (RegisterDeviceReq) returns (RegisterDeviceResp);
+  
   //推送信息到房间
   rpc  PushRoom (PushRoomReq) returns (google.protobuf.Empty);
 
@@ -56,8 +57,10 @@ service LogicExt{
 
 //登陆请求
 message SignInReq{
-  string phone_number = 1;          //电话号码
-  string code = 2;                  //验证码
+  /* string phone_number = 1;          //电话号码 */
+  /* string code = 2;                  //验证码 */
+  string username = 1;              //用户名
+  string password = 2;              //密码
   int64 device_id = 3;              //设备id
 }
 
@@ -65,7 +68,7 @@ message SignInReq{
 message SignInResp{
   bool is_new = 1;                  //是否是新用户
   int64 user_id = 2;                //用户id
-  string token = 3;                 //token
+  // string token = 3;                 //token
 }
 
 //用户信息
@@ -92,7 +95,7 @@ message GetUserResp{
 //更新用户信息
 message UpdateUserReq{
   string nickname = 1;              //昵称
-  int64 sex = 2;                    //性别
+  int32 sex = 2;                    //性别
   string avatar_url = 3;            //头像
   string extra = 4;                 //附加字段
 }
