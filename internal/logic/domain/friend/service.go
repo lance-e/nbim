@@ -2,10 +2,9 @@ package friend
 
 import (
 	"context"
-	"fmt"
+	"nbim/internal/logic/domain/user"
 	"nbim/pkg/gerror"
 	"nbim/pkg/protocol/pb"
-	"nbim/pkg/rpc"
 	"time"
 )
 
@@ -27,7 +26,7 @@ func (*service) AddFriend(ctx context.Context, userId int64, req *pb.AddFriendRe
 		}
 	}
 
-	//创建好友关系(申请状态)
+	//创建好友关系(申请状态/单向好友)
 	err = Dao.Save(&Friend{
 		UserId:     userId,
 		FriendId:   req.FriendId,
@@ -40,18 +39,51 @@ func (*service) AddFriend(ctx context.Context, userId int64, req *pb.AddFriendRe
 		return err
 	}
 
-	//调用业务服务器接口,获取用户信息
-	resp, err := rpc.GetLogicIntClient().GetUser(ctx, &pb.GetUserReq{UserId: userId})
-	if err != nil {
-		return err
-	}
-
 	//TODO
-	fmt.Printf("resp: %v\n", resp)
-
+	// user.Service.GetUser(userId)
 	return nil
 }
 
+func (*service) ViewAddFriend(ctx context.Context, userId int64) ([]*pb.Friend, error) {
+	applers, err := Dao.List(userId, FriendStatusApply)
+	if err != nil {
+		return nil, err
+	}
+
+	//只使用到了key
+	userIds := make(map[int64]int32, len(applers))
+	for _, appler := range applers {
+		//这里要用userid,因为List出来的列表的friend_id全都是caller的user_id
+		userIds[appler.UserId] = 0
+	}
+
+	//通过调用业务服务器获取更多的用户信息
+	resp, err := user.App.GetUsers(ctx, &pb.GetUsersReq{
+		UserIds: userIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	//构造返回的pb.Friend
+	pbFriends := make([]*pb.Friend, len(applers))
+	for i := range applers {
+		friend := pb.Friend{
+			FriendId: applers[i].UserId, //!userid
+			Remarks:  applers[i].Remarks,
+			Extra:    applers[i].Extra,
+		}
+		if res, ok := resp.Users[applers[i].UserId]; ok {
+			friend.Nickname = res.Nickname
+			friend.Sex = res.Sex
+			friend.AvatarUrl = res.AvatarUrl
+			friend.UserExtra = res.Extra
+		}
+		pbFriends[i] = &friend
+	}
+	return pbFriends, nil
+
+}
 func (*service) AgreeFriend(ctx context.Context, userId int64, req *pb.AgreeFriendReq) error {
 	friend, err := Dao.Get(req.FriendId, userId)
 	if err != nil {
@@ -85,13 +117,8 @@ func (*service) AgreeFriend(ctx context.Context, userId int64, req *pb.AgreeFrie
 	}
 
 	//调用业务服务器接口,获取用户信息
-	resp, err := rpc.GetLogicIntClient().GetUser(ctx, &pb.GetUserReq{UserId: userId})
-	if err != nil {
-		return err
-	}
-
 	//TODO
-	fmt.Printf("resp: %v\n", resp)
+	// user.Service.GetUser(userId)
 
 	return nil
 }
@@ -129,11 +156,12 @@ func (*service) GetAllFriends(ctx context.Context, userId int64) ([]*pb.Friend, 
 	//只使用到了key
 	userIds := make(map[int64]int32, len(friends))
 	for _, friend := range friends {
+		//这里要用friend_id,因为List出来的列表的user_id全都是caller的user_id
 		userIds[friend.FriendId] = 0
 	}
 
-	//通过调用业务服务器获取更多的用户信息
-	resp, err := rpc.GetLogicIntClient().GetUsers(ctx, &pb.GetUsersReq{
+	//获取批量用户信息
+	resp, err := user.App.GetUsers(ctx, &pb.GetUsersReq{
 		UserIds: userIds,
 	})
 	if err != nil {
@@ -144,10 +172,11 @@ func (*service) GetAllFriends(ctx context.Context, userId int64) ([]*pb.Friend, 
 	pbFriends := make([]*pb.Friend, len(friends))
 	for i := range friends {
 		friend := pb.Friend{
-			FriendId: friends[i].FriendId,
+			FriendId: friends[i].FriendId, //!friendid
 			Remarks:  friends[i].Remarks,
 			Extra:    friends[i].Extra,
 		}
+		//补充好友信息
 		if res, ok := resp.Users[friends[i].FriendId]; ok {
 			friend.Nickname = res.Nickname
 			friend.Sex = res.Sex

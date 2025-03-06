@@ -13,7 +13,7 @@ import (
 )
 
 func RegisterDevice(c *gin.Context) {
-	resp, err := rpc.GetLogicExtClient().RegisterDevice(GetMetaData(c), &pb.RegisterDeviceReq{
+	resp, err := rpc.GetLogicExtClient().RegisterDevice(context.TODO(), &pb.RegisterDeviceReq{
 		Type:          3, //TODO:暂时只支持pc端
 		Brand:         c.GetHeader("Brand"),
 		Model:         c.GetHeader("Model"),
@@ -23,14 +23,15 @@ func RegisterDevice(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"msg":  "successful",
-		"data": resp.DeviceId,
+		"code":      http.StatusOK,
+		"msg":       "successful",
+		"device_id": resp.DeviceId,
 	})
 }
 
@@ -45,9 +46,10 @@ func SignIn(c *gin.Context) {
 			"msg":  "device_id is wrong",
 			"data": nil,
 		})
+		return
 	}
 
-	resp, err := rpc.GetLogicExtClient().SignIn(GetMetaData(c), &pb.SignInReq{
+	resp, err := rpc.GetLogicExtClient().SignIn(context.TODO(), &pb.SignInReq{
 		Username: username,
 		Password: password,
 		DeviceId: int64(deviceId),
@@ -55,27 +57,38 @@ func SignIn(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 
-	token, err := GenerateToken(username, password)
+	token, err := GenerateToken(strconv.Itoa(int(resp.GetUserId())), username, password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "jwt error",
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"is_new":  resp.IsNew,
-		"user_id": resp.UserId,
+		"is_new":  resp.GetIsNew(),
+		"user_id": resp.GetUserId(),
 		"token":   token,
 	})
 }
 
 func GetUser(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	userId := c.PostForm("user_id")
 	id, err := strconv.Atoi(userId)
 	if err != nil {
@@ -84,21 +97,32 @@ func GetUser(c *gin.Context) {
 			"msg":  "user_id is wrong",
 			"data": nil,
 		})
+		return
 	}
-	resp, err := rpc.GetLogicExtClient().GetUser(GetMetaData(c), &pb.GetUserReq{
+	resp, err := rpc.GetLogicExtClient().GetUser(ctx, &pb.GetUserReq{
 		UserId: int64(id),
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp.User)
 }
 
 func UpdateUser(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	nickname := c.PostForm("nickname")
 	sex := c.PostForm("sex")
 	avatarUrl := c.PostForm("avatar_url")
@@ -110,8 +134,9 @@ func UpdateUser(c *gin.Context) {
 			"msg":  "sex is wrong",
 			"data": nil,
 		})
+		return
 	}
-	_, err = rpc.GetLogicExtClient().UpdateUser(GetMetaData(c), &pb.UpdateUserReq{
+	_, err = rpc.GetLogicExtClient().UpdateUser(ctx, &pb.UpdateUserReq{
 		Nickname:  nickname,
 		Sex:       int32(sexnum),
 		AvatarUrl: avatarUrl,
@@ -120,9 +145,10 @@ func UpdateUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -130,22 +156,41 @@ func UpdateUser(c *gin.Context) {
 	})
 }
 func SearchUser(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	key := c.PostForm("key")
 
-	resp, err := rpc.GetLogicExtClient().SearchUser(GetMetaData(c), &pb.SearchUserReq{
+	resp, err := rpc.GetLogicExtClient().SearchUser(ctx, &pb.SearchUserReq{
 		Key: key,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp.Users)
 }
 
 func AddFriend(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	friend_id := c.PostForm("friend_id")
 	remarks := c.PostForm("remarks")
 	description := c.PostForm("description")
@@ -156,8 +201,9 @@ func AddFriend(c *gin.Context) {
 			"msg":  "friend_id is wrong",
 			"data": nil,
 		})
+		return
 	}
-	_, err = rpc.GetLogicExtClient().AddFriend(GetMetaData(c), &pb.AddFriendReq{
+	_, err = rpc.GetLogicExtClient().AddFriend(ctx, &pb.AddFriendReq{
 		FriendId:    int64(id),
 		Remarks:     remarks,
 		Description: description,
@@ -165,9 +211,10 @@ func AddFriend(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -175,7 +222,38 @@ func AddFriend(c *gin.Context) {
 	})
 }
 
+func ViewAddFriend(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
+	resp, err := rpc.GetLogicExtClient().ViewAddFriend(ctx, &emptypb.Empty{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  err.Error(),
+			"data": nil,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, resp.Friends)
+}
+
 func AgreeFriend(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	friend_id := c.PostForm("friend_id")
 	remarks := c.PostForm("remarks")
 	id, err := strconv.Atoi(friend_id)
@@ -185,17 +263,19 @@ func AgreeFriend(c *gin.Context) {
 			"msg":  "friend_id is wrong",
 			"data": nil,
 		})
+		return
 	}
-	_, err = rpc.GetLogicExtClient().AgreeFriend(GetMetaData(c), &pb.AgreeFriendReq{
+	_, err = rpc.GetLogicExtClient().AgreeFriend(ctx, &pb.AgreeFriendReq{
 		FriendId: int64(id),
 		Remarks:  remarks,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -204,6 +284,15 @@ func AgreeFriend(c *gin.Context) {
 }
 
 func SetFriend(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	friend_id := c.PostForm("friend_id")
 	remarks := c.PostForm("remarks")
 	extra := c.PostForm("extra")
@@ -214,8 +303,9 @@ func SetFriend(c *gin.Context) {
 			"msg":  "friend_id is wrong",
 			"data": nil,
 		})
+		return
 	}
-	resp, err := rpc.GetLogicExtClient().SetFriend(GetMetaData(c), &pb.SetFriendReq{
+	resp, err := rpc.GetLogicExtClient().SetFriend(ctx, &pb.SetFriendReq{
 		FriendId: int64(id),
 		Remarks:  remarks,
 		Extra:    extra,
@@ -223,29 +313,44 @@ func SetFriend(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
 func GetAllFriends(c *gin.Context) {
-	resp, err := rpc.GetLogicExtClient().GetAllFriends(GetMetaData(c), &emptypb.Empty{})
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
+	resp, err := rpc.GetLogicExtClient().GetAllFriends(ctx, &emptypb.Empty{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp.Friends)
 }
 
 type tempCreateGroupAllParam struct {
-	req      pb.CreateGroupReq
-	callerId int64 `json:caller_id`
-	deviceId int64 `json:device_id`
+	Name         string  `json:"name,omitempty"`         //名称
+	AvatarUrl    string  `json:"avatar_url,omitempty"`   //头像
+	Introduction string  `json:"introduction,omitempty"` //介绍
+	Extra        string  `json:"extra,omitempty"`        //附加字段
+	MemberIds    []int64 `json:"member_ids,omitempty"`   //群组成员id列表
+	CallerId     int64   `json:"caller_id"`              //元数据
+	DeviceId     int64   `json:"device_id"`              //元数据
 }
 
 func CreateGroup(c *gin.Context) {
@@ -256,22 +361,48 @@ func CreateGroup(c *gin.Context) {
 			"msg":  "creategroup request bind json failed",
 			"data": nil,
 		})
+		return
+	}
+	//token auth
+	id, ok := c.Get("caller_id")
+	if !ok || (ok && id != strconv.Itoa(int(req.CallerId))) {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
 	}
 	resp, err := rpc.GetLogicExtClient().CreateGroup(metadata.NewOutgoingContext(context.TODO(), metadata.Pairs(
-		"user_id", strconv.FormatInt(req.callerId, 10),
-		"device_id", strconv.FormatInt(req.deviceId, 10),
-	)), &req.req)
+		"user_id", strconv.FormatInt(req.CallerId, 10),
+		"device_id", strconv.FormatInt(req.DeviceId, 10),
+	)), &pb.CreateGroupReq{
+		Name:         req.Name,
+		AvatarUrl:    req.AvatarUrl,
+		Introduction: req.Introduction,
+		Extra:        req.Extra,
+		MemberIds:    req.MemberIds,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
 func UpdateGroup(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	groupId := c.PostForm("group_id")
 	avatarUrl := c.PostForm("avatar_url")
 	name := c.PostForm("name")
@@ -284,8 +415,9 @@ func UpdateGroup(c *gin.Context) {
 			"msg":  "group_id is wrong",
 			"data": nil,
 		})
+		return
 	}
-	_, err = rpc.GetLogicExtClient().UpdateGroup(GetMetaData(c), &pb.UpdateGroupReq{
+	_, err = rpc.GetLogicExtClient().UpdateGroup(ctx, &pb.UpdateGroupReq{
 		GroupId:      int64(id),
 		Name:         name,
 		AvatarUrl:    avatarUrl,
@@ -295,9 +427,10 @@ func UpdateGroup(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -306,6 +439,15 @@ func UpdateGroup(c *gin.Context) {
 }
 
 func GetGroup(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	groupId := c.PostForm("group_id")
 	id, err := strconv.Atoi(groupId)
 	if err != nil {
@@ -314,36 +456,49 @@ func GetGroup(c *gin.Context) {
 			"msg":  "group_id is wrong",
 			"data": nil,
 		})
+		return
 	}
-	resp, err := rpc.GetLogicExtClient().GetGroup(GetMetaData(c), &pb.GetGroupReq{
+	resp, err := rpc.GetLogicExtClient().GetGroup(ctx, &pb.GetGroupReq{
 		GroupId: int64(id),
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp.Group)
 }
 
 func GetAllGroup(c *gin.Context) {
-	resp, err := rpc.GetLogicExtClient().GetAllGroup(GetMetaData(c), &emptypb.Empty{})
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
+	resp, err := rpc.GetLogicExtClient().GetAllGroup(ctx, &emptypb.Empty{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp.Groups)
 }
 
 type tempAddGroupMemberAllParam struct {
-	req      pb.AddGroupMemberReq
-	callerId int64 `json:caller_id`
-	deviceId int64 `json:device_id`
+	GroupId  int64   `json:"group_id"` //群组id
+	UserIds  []int64 `json:"user_ids"` //用户id列表
+	CallerId int64   `json:"caller_id"`
+	DeviceId int64   `json:"device_id"`
 }
 
 func AddGroupMember(c *gin.Context) {
@@ -354,22 +509,45 @@ func AddGroupMember(c *gin.Context) {
 			"msg":  "add group member request bind json failed",
 			"data": nil,
 		})
+		return
+	}
+	//token auth
+	id, ok := c.Get("caller_id")
+	if !ok || (ok && id != strconv.Itoa(int(req.CallerId))) {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
 	}
 	resp, err := rpc.GetLogicExtClient().AddGroupMember(metadata.NewOutgoingContext(context.TODO(), metadata.Pairs(
-		"user_id", strconv.FormatInt(req.callerId, 10),
-		"device_id", strconv.FormatInt(req.deviceId, 10),
-	)), &req.req)
+		"user_id", strconv.FormatInt(req.CallerId, 10),
+		"device_id", strconv.FormatInt(req.DeviceId, 10),
+	)), &pb.AddGroupMemberReq{
+		GroupId: req.GroupId,
+		UserIds: req.UserIds,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
-	c.JSON(http.StatusOK, resp.UserIds)
+	c.JSON(http.StatusOK, resp)
 }
 
 func UpdateGroupMember(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	groupId := c.PostForm("group_id")
 	userId := c.PostForm("user_id")
 	memberType := c.PostForm("member_type")
@@ -382,6 +560,7 @@ func UpdateGroupMember(c *gin.Context) {
 			"msg":  "group_id is wrong",
 			"data": nil,
 		})
+		return
 	}
 	user_id, err := strconv.Atoi(userId)
 	if err != nil {
@@ -390,6 +569,7 @@ func UpdateGroupMember(c *gin.Context) {
 			"msg":  "user_id is wrong",
 			"data": nil,
 		})
+		return
 	}
 	member_type, err := strconv.Atoi(memberType)
 	if err != nil {
@@ -398,8 +578,9 @@ func UpdateGroupMember(c *gin.Context) {
 			"msg":  "member_type is wrong",
 			"data": nil,
 		})
+		return
 	}
-	_, err = rpc.GetLogicExtClient().UpdateGroupMember(GetMetaData(c), &pb.UpdateGroupMemberReq{
+	_, err = rpc.GetLogicExtClient().UpdateGroupMember(ctx, &pb.UpdateGroupMemberReq{
 		GroupId:    int64(group_id),
 		UserId:     int64(user_id),
 		MemberType: pb.MemberType(member_type),
@@ -409,9 +590,10 @@ func UpdateGroupMember(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -420,6 +602,15 @@ func UpdateGroupMember(c *gin.Context) {
 }
 
 func DeleteGroupMember(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	groupId := c.PostForm("group_id")
 	userId := c.PostForm("user_id")
 	group_id, err := strconv.Atoi(groupId)
@@ -429,6 +620,7 @@ func DeleteGroupMember(c *gin.Context) {
 			"msg":  "group_id is wrong",
 			"data": nil,
 		})
+		return
 	}
 	user_id, err := strconv.Atoi(userId)
 	if err != nil {
@@ -437,18 +629,20 @@ func DeleteGroupMember(c *gin.Context) {
 			"msg":  "user_id is wrong",
 			"data": nil,
 		})
+		return
 	}
 
-	_, err = rpc.GetLogicExtClient().DeleteGroupMember(GetMetaData(c), &pb.DeleteGroupMemberReq{
+	_, err = rpc.GetLogicExtClient().DeleteGroupMember(ctx, &pb.DeleteGroupMemberReq{
 		GroupId: int64(group_id),
 		UserId:  int64(user_id),
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -457,6 +651,15 @@ func DeleteGroupMember(c *gin.Context) {
 }
 
 func GetGroupMember(c *gin.Context) {
+	ctx := GetMetaData(c)
+	if ctx == nil {
+		c.JSON(401, gin.H{
+			"code": 401,
+			"msg":  "token metadata is wrong ",
+		})
+		return
+	}
+
 	groupId := c.PostForm("group_id")
 	userId := c.PostForm("user_id")
 	group_id, err := strconv.Atoi(groupId)
@@ -466,6 +669,7 @@ func GetGroupMember(c *gin.Context) {
 			"msg":  "group_id is wrong",
 			"data": nil,
 		})
+		return
 	}
 	user_id, err := strconv.Atoi(userId)
 	if err != nil {
@@ -474,18 +678,20 @@ func GetGroupMember(c *gin.Context) {
 			"msg":  "user_id is wrong",
 			"data": nil,
 		})
+		return
 	}
 
-	resp, err := rpc.GetLogicExtClient().GetGroupMember(GetMetaData(c), &pb.GetGroupMemberReq{
+	resp, err := rpc.GetLogicExtClient().GetGroupMember(ctx, &pb.GetGroupMemberReq{
 		GroupId: int64(group_id),
 		UserId:  int64(user_id),
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  "rpc server wrong ",
+			"msg":  err.Error(),
 			"data": nil,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, resp.Members)
 }

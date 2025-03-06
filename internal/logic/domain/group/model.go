@@ -1,6 +1,8 @@
 package group
 
 import (
+	"errors"
+	"fmt"
 	"nbim/pkg/protocol/pb"
 	"time"
 )
@@ -12,8 +14,8 @@ const (
 
 // 群组全部信息
 type Group struct {
-	*GroupInfo                   //基本信息
-	GroupAllMember []GroupMember //成员
+	*GroupInfo                    //基本信息
+	GroupAllMember []*GroupMember //成员
 }
 
 // GroupInfo:群组信息
@@ -47,7 +49,7 @@ func NewGroup(ownerId int64, name string, avatarUrl string, introduction string,
 	//(数据库还未分配group_id)
 	group := &Group{
 		GroupInfo:      NewGroupInfo(name, avatarUrl, introduction, userNum, extra),
-		GroupAllMember: make([]GroupMember, 0),
+		GroupAllMember: make([]*GroupMember, 0),
 	}
 	//将建群用户特殊处理为管理员
 	group.GroupAllMember = append(group.GroupAllMember, NewGroupMember(0, ownerId, int(pb.MemberType_GMT_ADMIN)))
@@ -71,8 +73,8 @@ func NewGroupInfo(name string, avatarUrl string, introduction string, userNum in
 	return info
 }
 
-func NewGroupMember(groupId int64, userId int64, memberType int) GroupMember {
-	member := GroupMember{
+func NewGroupMember(groupId int64, userId int64, memberType int) *GroupMember {
+	member := &GroupMember{
 		GroupId:    groupId,
 		UserId:     userId,
 		MemberType: memberType,
@@ -107,7 +109,7 @@ func GetGroupFromDB(groupId int64) (*Group, error) {
 		GroupAllMember: members,
 	}
 	//从数据库查后，缓存
-	err = group.SaveGroupIntoDB()
+	err = Cathe.Set(group)
 	if err != nil {
 		return nil, err
 	}
@@ -117,20 +119,21 @@ func GetGroupFromDB(groupId int64) (*Group, error) {
 // SaveGroupIntoDB:保存群组所有信息到数据库，并返回群组group_id
 // !!!一次性保存批量更改，减少数据库io
 func (group *Group) SaveGroupIntoDB() error {
-	groupId := group.Id
+	groupId := group.GroupInfo.Id
 	//先保存群组信息,(若第一次创建会自动分配group_id)
 	if err := Dao.SaveInfo(group.GroupInfo); err != nil {
 		return err
 	}
 	//分别将每个成员信息保存到数据库
 	for _, member := range group.GroupAllMember {
-		member.GroupId = group.Id //与群组id绑定
+		member.GroupId = group.GroupInfo.Id //与群组id绑定
 		switch member.ChangeType {
 		case MemberChangeUpdate:
-			if err := Dao.SaveMember(&member); err != nil {
+			if err := Dao.SaveMember(member); err != nil {
 				return err
 			}
 		case MemberChangeDelete:
+			fmt.Printf("执行delete\n")
 			if err := Dao.DeleteMember(member.GroupId, member.UserId); err != nil {
 				return err
 			}
@@ -167,7 +170,7 @@ func (group *Group) IsMember(userId int64) bool {
 func (group *Group) GetMember(userId int64) *GroupMember {
 	for _, member := range group.GroupAllMember {
 		if member.UserId == userId {
-			return &member
+			return member
 		}
 	}
 	return nil
@@ -184,7 +187,7 @@ func (group *Group) AddMember(userIds []int64) ([]int64, []int64, error) {
 			continue
 		}
 		//非成员，加入群组
-		group.GroupAllMember = append(group.GroupAllMember, GroupMember{
+		group.GroupAllMember = append(group.GroupAllMember, &GroupMember{
 			GroupId:    group.Id,
 			UserId:     userId,
 			MemberType: int(pb.MemberType_GMT_MEMBER),
@@ -200,7 +203,7 @@ func (group *Group) AddMember(userIds []int64) ([]int64, []int64, error) {
 func (group *Group) UpdateMember(userId int64, memberType int, remarks string, extra string) error {
 	member := group.GetMember(userId)
 	if member == nil {
-		return nil
+		return errors.New("update member failed")
 	}
 
 	member.MemberType = memberType
@@ -215,7 +218,7 @@ func (group *Group) UpdateMember(userId int64, memberType int, remarks string, e
 func (group *Group) DeleteMember(userId int64) error {
 	member := group.GetMember(userId)
 	if member == nil {
-		return nil
+		return errors.New("delete member failed")
 	}
 
 	member.ChangeType = MemberChangeDelete

@@ -42,8 +42,8 @@ func (*dao) ListAllGroupUserJoined(userId int64) ([]GroupInfo, error) {
 }
 
 // ListAllMember:获取群组所有成员信息
-func (*dao) ListAllMember(groupId int64) ([]GroupMember, error) {
-	members := []GroupMember{}
+func (*dao) ListAllMember(groupId int64) ([]*GroupMember, error) {
+	members := []*GroupMember{}
 	err := db.DB.Find(&members, "group_id = ?", groupId).Error
 	if err != nil {
 		return nil, gerror.WrapError(err)

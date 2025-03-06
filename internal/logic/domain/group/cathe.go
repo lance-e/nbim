@@ -33,7 +33,7 @@ func (*cathe) Get(groupId int64) (*Group, error) {
 }
 
 func (*cathe) Set(group *Group) error {
-	return gerror.WrapError(db.SetRedisByJson(GroupRedisKey+strconv.FormatInt(group.Id, 10), group, GroupRedisExpire))
+	return gerror.WrapError(db.SetRedisByJson(GroupRedisKey+strconv.FormatInt(group.GroupInfo.Id, 10), group, GroupRedisExpire))
 }
 
 func (*cathe) Del(groupId int64) error {

@@ -4,26 +4,29 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var jwtSecret []byte
+var jwtSecret = []byte("this is jwt secret")
 
 type Claims struct {
+	CallerId string `json:caller_id`
 	Username string `json:"username"`
 	Password string `json:"password"`
 	jwt.RegisteredClaims
 }
 
 // GenerateToken generate tokens used for auth
-func GenerateToken(username, password string) (string, error) {
+func GenerateToken(userid string, username, password string) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(3 * time.Hour)
 
 	claims := Claims{
+		userid,
 		EncodeMD5(username),
 		EncodeMD5(password),
 		jwt.RegisteredClaims{
@@ -63,42 +66,39 @@ func EncodeMD5(value string) string {
 
 // JWT is jwt middleware
 func JWT() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var code int
-		var data interface{}
-		var msg string
-
-		code = 200
-		msg = "successful"
-		token := c.Query("token")
-		if token == "" {
-			code = 400
-			msg = "invalid param"
-		} else {
-			_, err := ParseToken(token)
-			if err != nil {
-				switch err.(*jwt.ValidationError).Errors {
-				case jwt.ValidationErrorExpired:
-					code = 500
-					msg = "error_auth_check_token_timeout"
-				default:
-					code = 500
-					msg = "error_auth_check_token_fail"
-				}
-			}
-		}
-
-		if code != 200 {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code": code,
-				"msg":  msg,
-				"data": data,
+	return func(ctx *gin.Context) {
+		value := ctx.Request.Header.Get("Authorization")
+		tokenstr := strings.SplitN(value, " ", 2)
+		if tokenstr[0] != "Bearer" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"error": "JWT 格式不正确",
 			})
-
-			c.Abort()
+			ctx.Abort()
+			return
+		}
+		if tokenstr[1] == "" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"error": "JWT 为空",
+			})
+			ctx.Abort()
+			return
+		}
+		cliam, err := ParseToken(tokenstr[1])
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"error": "token 解析失败",
+			})
+			ctx.Abort()
+			return
+		} else if cliam.ExpiresAt.Unix() < time.Now().Unix() {
+			ctx.JSON(400, gin.H{
+				"error": "token 超时",
+			})
+			ctx.Abort()
 			return
 		}
 
-		c.Next()
+		ctx.Set("caller_id", cliam.CallerId)
+		ctx.Next()
 	}
 }

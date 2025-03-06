@@ -23,11 +23,13 @@ const (
 	LogicExt_RegisterDevice_FullMethodName      = "/pb.LogicExt/RegisterDevice"
 	LogicExt_SignIn_FullMethodName              = "/pb.LogicExt/SignIn"
 	LogicExt_GetUser_FullMethodName             = "/pb.LogicExt/GetUser"
+	LogicExt_GetUsers_FullMethodName            = "/pb.LogicExt/GetUsers"
 	LogicExt_UpdateUser_FullMethodName          = "/pb.LogicExt/UpdateUser"
 	LogicExt_SearchUser_FullMethodName          = "/pb.LogicExt/SearchUser"
 	LogicExt_PushRoom_FullMethodName            = "/pb.LogicExt/PushRoom"
 	LogicExt_SendMessageToFriend_FullMethodName = "/pb.LogicExt/SendMessageToFriend"
 	LogicExt_AddFriend_FullMethodName           = "/pb.LogicExt/AddFriend"
+	LogicExt_ViewAddFriend_FullMethodName       = "/pb.LogicExt/ViewAddFriend"
 	LogicExt_AgreeFriend_FullMethodName         = "/pb.LogicExt/AgreeFriend"
 	LogicExt_SetFriend_FullMethodName           = "/pb.LogicExt/SetFriend"
 	LogicExt_GetAllFriends_FullMethodName       = "/pb.LogicExt/GetAllFriends"
@@ -52,6 +54,8 @@ type LogicExtClient interface {
 	SignIn(ctx context.Context, in *SignInReq, opts ...grpc.CallOption) (*SignInResp, error)
 	// 获取用户信息
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error)
+	// 批量获取用户信息
+	GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (*GetUsersResp, error)
 	// 更新用户信息
 	UpdateUser(ctx context.Context, in *UpdateUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 搜索用户
@@ -62,6 +66,8 @@ type LogicExtClient interface {
 	SendMessageToFriend(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*SendMessageResp, error)
 	// 添加好友
 	AddFriend(ctx context.Context, in *AddFriendReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 查看好友申请列表
+	ViewAddFriend(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ViewAddFriendResp, error)
 	// 同意添加好友
 	AgreeFriend(ctx context.Context, in *AgreeFriendReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 设置好友信息
@@ -126,6 +132,16 @@ func (c *logicExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...gr
 	return out, nil
 }
 
+func (c *logicExtClient) GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (*GetUsersResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUsersResp)
+	err := c.cc.Invoke(ctx, LogicExt_GetUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *logicExtClient) UpdateUser(ctx context.Context, in *UpdateUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
@@ -170,6 +186,16 @@ func (c *logicExtClient) AddFriend(ctx context.Context, in *AddFriendReq, opts .
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, LogicExt_AddFriend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicExtClient) ViewAddFriend(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ViewAddFriendResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ViewAddFriendResp)
+	err := c.cc.Invoke(ctx, LogicExt_ViewAddFriend_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -306,6 +332,8 @@ type LogicExtServer interface {
 	SignIn(context.Context, *SignInReq) (*SignInResp, error)
 	// 获取用户信息
 	GetUser(context.Context, *GetUserReq) (*GetUserResp, error)
+	// 批量获取用户信息
+	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	// 更新用户信息
 	UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error)
 	// 搜索用户
@@ -316,6 +344,8 @@ type LogicExtServer interface {
 	SendMessageToFriend(context.Context, *SendMessageReq) (*SendMessageResp, error)
 	// 添加好友
 	AddFriend(context.Context, *AddFriendReq) (*emptypb.Empty, error)
+	// 查看好友申请列表
+	ViewAddFriend(context.Context, *emptypb.Empty) (*ViewAddFriendResp, error)
 	// 同意添加好友
 	AgreeFriend(context.Context, *AgreeFriendReq) (*emptypb.Empty, error)
 	// 设置好友信息
@@ -359,6 +389,9 @@ func (UnimplementedLogicExtServer) SignIn(context.Context, *SignInReq) (*SignInR
 func (UnimplementedLogicExtServer) GetUser(context.Context, *GetUserReq) (*GetUserResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
+func (UnimplementedLogicExtServer) GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
+}
 func (UnimplementedLogicExtServer) UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
@@ -373,6 +406,9 @@ func (UnimplementedLogicExtServer) SendMessageToFriend(context.Context, *SendMes
 }
 func (UnimplementedLogicExtServer) AddFriend(context.Context, *AddFriendReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddFriend not implemented")
+}
+func (UnimplementedLogicExtServer) ViewAddFriend(context.Context, *emptypb.Empty) (*ViewAddFriendResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ViewAddFriend not implemented")
 }
 func (UnimplementedLogicExtServer) AgreeFriend(context.Context, *AgreeFriendReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AgreeFriend not implemented")
@@ -485,6 +521,24 @@ func _LogicExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LogicExt_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicExtServer).GetUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicExt_GetUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicExtServer).GetUsers(ctx, req.(*GetUsersReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LogicExt_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateUserReq)
 	if err := dec(in); err != nil {
@@ -571,6 +625,24 @@ func _LogicExt_AddFriend_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LogicExtServer).AddFriend(ctx, req.(*AddFriendReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicExt_ViewAddFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicExtServer).ViewAddFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicExt_ViewAddFriend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicExtServer).ViewAddFriend(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -811,6 +883,10 @@ var LogicExt_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LogicExt_GetUser_Handler,
 		},
 		{
+			MethodName: "GetUsers",
+			Handler:    _LogicExt_GetUsers_Handler,
+		},
+		{
 			MethodName: "UpdateUser",
 			Handler:    _LogicExt_UpdateUser_Handler,
 		},
@@ -829,6 +905,10 @@ var LogicExt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddFriend",
 			Handler:    _LogicExt_AddFriend_Handler,
+		},
+		{
+			MethodName: "ViewAddFriend",
+			Handler:    _LogicExt_ViewAddFriend_Handler,
 		},
 		{
 			MethodName: "AgreeFriend",

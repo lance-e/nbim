@@ -6,6 +6,7 @@ import (
 	"nbim/internal/logic/domain/friend"
 	"nbim/internal/logic/domain/group"
 	"nbim/internal/logic/domain/message"
+	"nbim/internal/logic/domain/user"
 	"nbim/pkg/protocol/pb"
 	"nbim/pkg/rpc"
 
@@ -22,23 +23,32 @@ func (s *LogicExtServer) RegisterDevice(ctx context.Context, req *pb.RegisterDev
 }
 
 // 账号密码登陆
-func (s *LogicExtServer) SignIn(context.Context, *pb.SignInReq) (*pb.SignInResp, error) {
-	return &pb.SignInResp{}, nil
+func (s *LogicExtServer) SignIn(ctx context.Context, req *pb.SignInReq) (*pb.SignInResp, error) {
+	return user.App.SignIn(ctx, req)
 }
 
 // 获取用户信息
-func (s *LogicExtServer) GetUser(context.Context, *pb.GetUserReq) (*pb.GetUserResp, error) {
-	return &pb.GetUserResp{}, nil
+func (s *LogicExtServer) GetUser(ctx context.Context, req *pb.GetUserReq) (*pb.GetUserResp, error) {
+	return user.App.GetUser(ctx, req)
+}
+
+// 批量获取用户信息
+func (s *LogicExtServer) GetUsers(ctx context.Context, req *pb.GetUsersReq) (*pb.GetUsersResp, error) {
+	return user.App.GetUsers(ctx, req)
 }
 
 // 更新用户信息
-func (s *LogicExtServer) UpdateUser(context.Context, *pb.UpdateUserReq) (*emptypb.Empty, error) {
-	return new(emptypb.Empty), nil
+func (s *LogicExtServer) UpdateUser(ctx context.Context, req *pb.UpdateUserReq) (*emptypb.Empty, error) {
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return &emptypb.Empty{}, err
+	}
+	return &emptypb.Empty{}, user.App.UpdateUser(ctx, userid, req)
 }
 
 // 搜索用户
-func (s *LogicExtServer) SearchUser(context.Context, *pb.SearchUserReq) (*pb.SearchUserResp, error) {
-	return &pb.SearchUserResp{}, nil
+func (s *LogicExtServer) SearchUser(ctx context.Context, req *pb.SearchUserReq) (*pb.SearchUserResp, error) {
+	return user.App.SearchUser(ctx, req)
 }
 
 // 推送信息到房间
@@ -62,6 +72,15 @@ func (s *LogicExtServer) AddFriend(ctx context.Context, req *pb.AddFriendReq) (*
 		return nil, err
 	}
 	return &emptypb.Empty{}, friend.App.AddFriend(ctx, userid, req)
+}
+
+// 查看好友申请
+func (s *LogicExtServer) ViewAddFriend(ctx context.Context, req *emptypb.Empty) (*pb.ViewAddFriendResp, error) {
+	userid, _, err := rpc.GetCtxUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return friend.App.ViewAddFriend(ctx, userid, &emptypb.Empty{})
 }
 
 // 同意添加好友

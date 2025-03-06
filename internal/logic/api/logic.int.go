@@ -21,18 +21,6 @@ func (s *LogicIntServer) Auth(context.Context, *pb.AuthReq) (*emptypb.Empty, err
 	return new(emptypb.Empty), nil
 }
 
-// 获取用户信息
-func (s *LogicIntServer) GetUser(context.Context, *pb.GetUserReq) (*pb.GetUserResp, error) {
-
-	return &pb.GetUserResp{}, nil
-}
-
-// 批量获取用户信息
-func (s *LogicIntServer) GetUsers(context.Context, *pb.GetUsersReq) (*pb.GetUsersResp, error) {
-
-	return &pb.GetUsersResp{}, nil
-}
-
 // 长连接登陆,建立tcp连接时调用
 func (s *LogicIntServer) ConnSignIn(ctx context.Context, req *pb.ConnSignInReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, device.App.ConnSignIn(ctx, req)

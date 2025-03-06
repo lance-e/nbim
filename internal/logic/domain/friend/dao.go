@@ -34,6 +34,14 @@ func (*dao) Save(friend *Friend) error {
 // List:获取符合指定状态的好友关系列表(好友列表或者申请列表)
 func (*dao) List(userId int64, status int) ([]Friend, error) {
 	friends := []Friend{}
-	err := db.DB.Find(&friends, "user_id = ? and status = ?", userId, status).Error
+	var err error
+	if status == 1 {
+		//查看好友列表
+		err = db.DB.Where("user_id = ? and status = ?", userId, status).Find(&friends).Error
+	} else {
+		//查看好友申请
+		err = db.DB.Where("friend_id= ? and status = ?", userId, status).Find(&friends).Error
+
+	}
 	return friends, gerror.WrapError(err)
 }

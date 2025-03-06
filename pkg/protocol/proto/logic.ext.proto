@@ -11,6 +11,8 @@ service LogicExt{
   rpc SignIn (SignInReq) returns (SignInResp) ;
   //获取用户信息
   rpc GetUser (GetUserReq) returns (GetUserResp);
+  //批量获取用户信息
+  rpc GetUsers (GetUsersReq) returns (GetUsersResp);
   //更新用户信息
   rpc UpdateUser (UpdateUserReq) returns (google.protobuf.Empty);
   //搜索用户
@@ -25,6 +27,8 @@ service LogicExt{
   rpc  SendMessageToFriend (SendMessageReq) returns (SendMessageResp);
   //添加好友
   rpc  AddFriend (AddFriendReq) returns (google.protobuf.Empty);
+  //查看好友申请列表
+  rpc  ViewAddFriend (google.protobuf.Empty) returns (ViewAddFriendResp);
   //同意添加好友
   rpc  AgreeFriend (AgreeFriendReq) returns (google.protobuf.Empty);
   //设置好友信息
@@ -73,7 +77,7 @@ message SignInResp{
 
 //用户信息
 message User{
-  int64 user_id = 1;                //用户id
+  string username = 1;              //用户名
   string nickname = 2;              //昵称
   int32 sex = 3;                    //性别
   string avatar_url = 4;            //头像
@@ -91,6 +95,18 @@ message GetUserReq{
 message GetUserResp{
   User user = 1 ;                   //用户信息
 }
+
+//批量获取用户信息请求
+message GetUsersReq{
+  map<int64 , int32> user_ids = 1;  //用户id
+}
+
+//批量获取用户信息响应
+message GetUsersResp{
+  map<int64,User> users = 1;        //用户信息
+}
+
+
 
 //更新用户信息
 message UpdateUserReq{
@@ -154,6 +170,12 @@ message AddFriendReq{
   string description = 3;       //描述
 }
 
+
+//查看好友申请列表响应
+message ViewAddFriendResp{
+  repeated Friend friends = 1;  //好友申请列表
+}
+
 //同意添加好友请求
 message AgreeFriendReq{
   int64 friend_id= 1;            //用户id
@@ -181,8 +203,8 @@ message GetAllFriendResp{
 
 //好友信息
 message Friend{
-  int64 friend_id = 1;            //用户id
-  string phone_number = 2;      //电话号码
+  int64 friend_id = 1;          //用户id
+  string username = 2;          //用户名称
   string nickname =3 ;          //昵称
   int32 sex = 4;                //性别
   string avatar_url = 5;        //头像

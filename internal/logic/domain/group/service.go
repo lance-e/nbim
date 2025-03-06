@@ -3,8 +3,8 @@ package group
 import (
 	"context"
 	"fmt"
+	"nbim/internal/logic/domain/user"
 	"nbim/pkg/protocol/pb"
-	"nbim/pkg/rpc"
 )
 
 type service struct{}
@@ -118,7 +118,7 @@ func (*service) GetGroupMembers(ctx context.Context, groupId int64, userId int64
 	for _, member := range group.GroupAllMember {
 		userIds[member.UserId] = 0
 	}
-	resp, err := rpc.GetLogicIntClient().GetUsers(ctx, &pb.GetUsersReq{UserIds: userIds})
+	resp, err := user.App.GetUsers(ctx, &pb.GetUsersReq{UserIds: userIds})
 	if err != nil {
 		return nil, err
 	}

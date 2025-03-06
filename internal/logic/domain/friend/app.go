@@ -16,6 +16,14 @@ func (*app) AddFriend(ctx context.Context, userid int64, req *pb.AddFriendReq) e
 	return Service.AddFriend(ctx, userid, req)
 }
 
+// 查看好友申请 
+func (*app) ViewAddFriend(ctx context.Context, userid int64, req *emptypb.Empty) (*pb.ViewAddFriendResp, error) {
+	list, err := Service.ViewAddFriend(ctx, userid)
+	return &pb.ViewAddFriendResp{
+		Friends: list,
+	}, err
+}
+
 // 同意添加好友
 func (*app) AgreeFriend(ctx context.Context, userid int64, req *pb.AgreeFriendReq) error {
 	return Service.AgreeFriend(ctx, userid, req)

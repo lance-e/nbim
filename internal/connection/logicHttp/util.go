@@ -11,6 +11,10 @@ import (
 func GetMetaData(c *gin.Context) context.Context {
 	me := c.PostForm("caller_id")
 	device := c.PostForm("device_id")
+	id, ok := c.Get("caller_id")
+	if !ok || (ok && id != me) {
+		return nil
+	}
 
 	ctx := metadata.NewOutgoingContext(context.TODO(), metadata.Pairs(
 		"user_id", me,

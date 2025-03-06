@@ -90,7 +90,8 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`
 (
     `id`           bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-    `phone_number` varchar(20)   NOT NULL COMMENT '手机号',
+    `username`     varchar(20)   NOT NULL COMMENT '用户名',
+    `password`     varchar(20)   NOT NULL COMMENT '用户密码',
     `nickname`     varchar(20)   NOT NULL COMMENT '昵称',
     `sex`          tinyint(4) NOT NULL COMMENT '性别，0:未知；1:男；2:女',
     `avatar_url`   varchar(256)  NOT NULL COMMENT '用户头像链接',
@@ -98,7 +99,7 @@ CREATE TABLE `user`
     `create_time`  datetime      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`  datetime      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_phone_number` (`phone_number`)
+    UNIQUE KEY `uk_username` (`username`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_bin COMMENT ='用户';
