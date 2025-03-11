@@ -24,10 +24,10 @@ const (
 type Chat struct {
 	Nick             string
 	UserID           string
-	SessionID        int64
+	SessionID        uint64
 	conn             *connect
 	closeChan        chan struct{}
-	MsgClientIDTable map[int64]int64
+	MsgClientIDTable map[uint64]int64
 	sync.RWMutex
 }
 
@@ -37,17 +37,17 @@ type Message struct {
 	FormUserID string
 	ToUserID   string
 	Content    string
-	Session    int64
+	Session    uint64
 }
 
-func NewChat(ip net.IP, port int, nick, userID string, sessionID int64) *Chat {
+func NewChat(ip net.IP, port int, nick, userID string, sessionID uint64) *Chat {
 	chat := &Chat{
 		Nick:             nick,
 		UserID:           userID,
 		SessionID:        sessionID,
 		conn:             newConnect(ip, port),
 		closeChan:        make(chan struct{}),
-		MsgClientIDTable: make(map[int64]int64),
+		MsgClientIDTable: make(map[uint64]int64),
 	}
 	go chat.loop()      //处理可读事件(接收消息)
 	chat.login()        //登陆
@@ -126,7 +126,7 @@ Loop:
 	}
 }
 
-func (chat *Chat) getClientID(sessionID int64) int64 {
+func (chat *Chat) getClientID(sessionID uint64) int64 {
 	chat.Lock()
 	defer chat.Unlock()
 	var res int64
@@ -140,6 +140,7 @@ func (chat *Chat) getClientID(sessionID int64) int64 {
 func (chat *Chat) login() {
 	loginMsg := pb.LoginMsg{
 		DeviceId: 123,
+		UserId:   1,
 	}
 	palyload, err := proto.Marshal(&loginMsg)
 	if err != nil {

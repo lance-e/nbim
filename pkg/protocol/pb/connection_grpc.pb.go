@@ -164,18 +164,20 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	State_ReceiveUplinkMessage_FullMethodName = "/pb.State/ReceiveUplinkMessage"
-	State_ClearConnState_FullMethodName       = "/pb.State/ClearConnState"
+	State_ReceiveUplinkMessage_FullMethodName    = "/pb.State/ReceiveUplinkMessage"
+	State_ClearConnState_FullMethodName          = "/pb.State/ClearConnState"
+	State_DelieverDownlinkMessage_FullMethodName = "/pb.State/DelieverDownlinkMessage"
 )
 
 // StateClient is the client API for State service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// 状态服务器提供给网关服务器的rpc
+// 状态服务器提供给网关服务器和逻辑层的rpc
 type StateClient interface {
 	ReceiveUplinkMessage(ctx context.Context, in *StateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ClearConnState(ctx context.Context, in *StateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DelieverDownlinkMessage(ctx context.Context, in *DelieverDownlinkMessageReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type stateClient struct {
@@ -206,14 +208,25 @@ func (c *stateClient) ClearConnState(ctx context.Context, in *StateRequest, opts
 	return out, nil
 }
 
+func (c *stateClient) DelieverDownlinkMessage(ctx context.Context, in *DelieverDownlinkMessageReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, State_DelieverDownlinkMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServer is the server API for State service.
 // All implementations must embed UnimplementedStateServer
 // for forward compatibility.
 //
-// 状态服务器提供给网关服务器的rpc
+// 状态服务器提供给网关服务器和逻辑层的rpc
 type StateServer interface {
 	ReceiveUplinkMessage(context.Context, *StateRequest) (*emptypb.Empty, error)
 	ClearConnState(context.Context, *StateRequest) (*emptypb.Empty, error)
+	DelieverDownlinkMessage(context.Context, *DelieverDownlinkMessageReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedStateServer()
 }
 
@@ -229,6 +242,9 @@ func (UnimplementedStateServer) ReceiveUplinkMessage(context.Context, *StateRequ
 }
 func (UnimplementedStateServer) ClearConnState(context.Context, *StateRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClearConnState not implemented")
+}
+func (UnimplementedStateServer) DelieverDownlinkMessage(context.Context, *DelieverDownlinkMessageReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelieverDownlinkMessage not implemented")
 }
 func (UnimplementedStateServer) mustEmbedUnimplementedStateServer() {}
 func (UnimplementedStateServer) testEmbeddedByValue()               {}
@@ -287,6 +303,24 @@ func _State_ClearConnState_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _State_DelieverDownlinkMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelieverDownlinkMessageReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServer).DelieverDownlinkMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: State_DelieverDownlinkMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServer).DelieverDownlinkMessage(ctx, req.(*DelieverDownlinkMessageReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // State_ServiceDesc is the grpc.ServiceDesc for State service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -301,6 +335,10 @@ var State_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClearConnState",
 			Handler:    _State_ClearConnState_Handler,
+		},
+		{
+			MethodName: "DelieverDownlinkMessage",
+			Handler:    _State_DelieverDownlinkMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

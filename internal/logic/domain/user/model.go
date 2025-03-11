@@ -11,6 +11,6 @@ type User struct {
 	Sex        int32
 	AvatarUrl  string
 	Extra      string
-	CreateTime time.Time //创建时间
-	UpdateTime time.Time //更新时间
+	CreateTime time.Time
+	UpdateTime time.Time
 }

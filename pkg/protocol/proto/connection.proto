@@ -3,6 +3,7 @@ option go_package = "pkg/protocol/pb";
 package pb;
 
 import "google/protobuf/empty.proto";
+import "message.proto";
 
 //网关服务器提供给状态服务器的rpc
 service Gateway{
@@ -10,20 +11,24 @@ service Gateway{
   rpc CloseConn(GatewayRequest) returns (google.protobuf.Empty);
 }
 
-//状态服务器提供给网关服务器的rpc
+//状态服务器提供给网关服务器和逻辑层的rpc
 service State{
   rpc ReceiveUplinkMessage(StateRequest) returns (google.protobuf.Empty);
   rpc ClearConnState(StateRequest) returns (google.protobuf.Empty);
+  rpc DelieverDownlinkMessage(DelieverDownlinkMessageReq) returns (google.protobuf.Empty);
 }
-
 message GatewayRequest{
   int64 conn_id= 1;  //id
   bytes data= 2 ; //数据
 }
-
 
 message StateRequest{
   string endpoint =1; //状态机endpoint
   int64 conn_id= 2;  //id
   bytes data= 3 ; //数据
 }
+
+message DelieverDownlinkMessageReq{
+  int64 device_id = 1;              //目标设备 
+  repeated DownlinkMsg downs = 2;   //批量下行消息
+} 

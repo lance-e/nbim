@@ -19,9 +19,9 @@ func (d *DefaultConfig) Build() Configuration {
 
 	viper.SetConfigFile("./configs/config.yaml")
 	if err := viper.ReadInConfig(); err != nil {
-		if err == err.(viper.ConfigFileNotFoundError) {
-			panic("without config.yaml")
-		}
+		/* if err == err.(viper.ConfigFileNotFoundError) { */
+		/* panic("without config.yaml") */
+		/* } */
 		panic(err)
 	}
 

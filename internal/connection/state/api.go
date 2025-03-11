@@ -2,6 +2,8 @@ package state
 
 import (
 	"context"
+	"fmt"
+	"nbim/pkg/db"
 	"nbim/pkg/protocol/pb"
 
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -50,4 +52,18 @@ func (s *StateServer) ClearConnState(ctx context.Context, req *pb.StateRequest) 
 		ConnId:   req.GetConnId(),
 	}
 	return new(emptypb.Empty), nil
+}
+
+func (s *StateServer) DelieverDownlinkMessage(ctx context.Context, req *pb.DelieverDownlinkMessageReq) (*emptypb.Empty, error) {
+	//获取到指定设备的连接id
+	connId, err := db.RedisCli.Get(fmt.Sprint(db.DeviceIdToConnId, req.DeviceId)).Int64()
+	if err != nil {
+		return &emptypb.Empty{}, err
+	}
+	//发送下行消息
+	for _, down := range req.Downs {
+		sendDownlinkMessage(context.TODO(), connId, down)
+	}
+
+	return &emptypb.Empty{}, nil
 }

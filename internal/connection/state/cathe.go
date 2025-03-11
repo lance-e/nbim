@@ -17,7 +17,6 @@ import (
 var CS *catheState
 
 type catheState struct {
-	MessageId         int64
 	ConnIdToConnState sync.Map     //connID到connState的映射
 	Server            *StateServer //对rpc server的反引用
 }
@@ -49,6 +48,8 @@ func (c *catheState) connLogout(ctx *context.Context, connID int64) {
 // 登陆:只有登陆了才会创建连接相关状态
 func (c *catheState) connLogin(ctx *context.Context, deviceId int64, connID int64) error {
 	//TODO:路由信息等其他状态信息
+	//缓存状态初始化
+	db.RedisCli.Set(fmt.Sprintf(db.DeviceIdToConnId, deviceId), connID, db.TTL7Day)
 	//本地状态保存
 	c.ConnIdToConnState.Store(connID, NewConnState(connID, deviceId))
 	return nil
@@ -62,6 +63,10 @@ func (c *catheState) connReconn(ctx *context.Context, oldConnID, newConnID int64
 		//复用连接状态
 		connS.connID = newConnID                       //更换为新分配的connID
 		c.ConnIdToConnState.Store(connS.connID, connS) //添加到映射中
+
+		//更新redis缓存
+		db.RedisCli.Set(fmt.Sprintf(db.DeviceIdToConnId, connS.deviceID), connS.connID, db.TTL7Day)
+
 		//启动心跳定时器
 		Wheel.AddTask(connS.heartbeatTask, time.Now().Add(5*time.Second))
 		fmt.Printf("重连成功!\n")
@@ -72,8 +77,14 @@ func (c *catheState) connReconn(ctx *context.Context, oldConnID, newConnID int64
 	}
 }
 
-func (c *catheState) connAck(ctx *context.Context, connID int64, sessionID int64, msgID int64) {
+func (c *catheState) connAck(ctx *context.Context, connID int64, sessionID uint64, msgID int64) {
 	if state, ok := c.ConnIdToConnState.Load(connID); ok {
+		connS := state.(*connState)
+
+		//用msgLock来确保ack最后一条消息
+		if connS.messageLock != fmt.Sprintf("%d_%d", sessionID, msgID) {
+			return
+		}
 
 		//删除缓存
 		key := fmt.Sprintf(db.LastMessageKey, GetSlot(connID), connID)
@@ -82,14 +93,13 @@ func (c *catheState) connAck(ctx *context.Context, connID int64, sessionID int64
 		}
 
 		//关闭等待ack的定时任务
-		connS := state.(*connState)
 		if connS.messageTask != nil {
 			Wheel.RemoveTask(connS.messageTask.Key)
 		}
 	}
 }
 
-func (c *catheState) compareAndIncrementClientID(ctx *context.Context, connID int64, oldClientID int64, sessionID int64) bool {
+func (c *catheState) compareAndIncrementClientID(ctx *context.Context, connID int64, oldClientID int64, sessionID uint64) bool {
 	slot := GetSlot(connID)
 	key := fmt.Sprintf(db.MaxClientIDKey, slot, connID, sessionID)
 	//TODO:lua脚本优化,实现原子性
@@ -134,7 +144,7 @@ func (c *catheState) reSetHeartbeatTimer(connId int64) {
 	}
 }
 
-func (c *catheState) AppendLastMsg(ctx *context.Context, connId int64, downlinkMsg *pb.DownlinkMsg) error {
+func (c *catheState) AppendLastMsg(ctx context.Context, connId int64, downlinkMsg *pb.DownlinkMsg) error {
 	state, ok := c.ConnIdToConnState.Load(connId)
 	if !ok {
 		return errors.New("connection state is nil")
@@ -143,6 +153,8 @@ func (c *catheState) AppendLastMsg(ctx *context.Context, connId int64, downlinkM
 	downData, _ := proto.Marshal(downlinkMsg)
 
 	connS := state.(*connState)
+	//设置msgLock,确保是目标最新的消息
+	connS.messageLock = fmt.Sprintf("%d_%d", downlinkMsg.SessionId, downlinkMsg.MessageId)
 	//设置消息定时器，直到被收到下行消息的ack
 	connS.SetMessageTimer()
 

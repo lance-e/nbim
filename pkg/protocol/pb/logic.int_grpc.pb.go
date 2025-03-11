@@ -20,17 +20,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LogicInt_Auth_FullMethodName          = "/pb.LogicInt/Auth"
-	LogicInt_ConnSignIn_FullMethodName    = "/pb.LogicInt/ConnSignIn"
-	LogicInt_Sync_FullMethodName          = "/pb.LogicInt/Sync"
-	LogicInt_ReceiveACK_FullMethodName    = "/pb.LogicInt/ReceiveACK"
-	LogicInt_Offline_FullMethodName       = "/pb.LogicInt/Offline"
-	LogicInt_SubscribeRoom_FullMethodName = "/pb.LogicInt/SubscribeRoom"
-	LogicInt_Push_FullMethodName          = "/pb.LogicInt/Push"
-	LogicInt_PushRoom_FullMethodName      = "/pb.LogicInt/PushRoom"
-	LogicInt_PushAll_FullMethodName       = "/pb.LogicInt/PushAll"
-	LogicInt_GetDevice_FullMethodName     = "/pb.LogicInt/GetDevice"
-	LogicInt_ServerStop_FullMethodName    = "/pb.LogicInt/ServerStop"
+	LogicInt_Auth_FullMethodName                = "/pb.LogicInt/Auth"
+	LogicInt_ConnSignIn_FullMethodName          = "/pb.LogicInt/ConnSignIn"
+	LogicInt_Sync_FullMethodName                = "/pb.LogicInt/Sync"
+	LogicInt_ReceiveACK_FullMethodName          = "/pb.LogicInt/ReceiveACK"
+	LogicInt_Offline_FullMethodName             = "/pb.LogicInt/Offline"
+	LogicInt_SendMessageToFriend_FullMethodName = "/pb.LogicInt/SendMessageToFriend"
+	LogicInt_SendMessageToGroup_FullMethodName  = "/pb.LogicInt/SendMessageToGroup"
+	LogicInt_SubscribeRoom_FullMethodName       = "/pb.LogicInt/SubscribeRoom"
+	LogicInt_Push_FullMethodName                = "/pb.LogicInt/Push"
+	LogicInt_PushRoom_FullMethodName            = "/pb.LogicInt/PushRoom"
+	LogicInt_PushAll_FullMethodName             = "/pb.LogicInt/PushAll"
+	LogicInt_GetDevice_FullMethodName           = "/pb.LogicInt/GetDevice"
+	LogicInt_ServerStop_FullMethodName          = "/pb.LogicInt/ServerStop"
 )
 
 // LogicIntClient is the client API for LogicInt service.
@@ -47,6 +49,10 @@ type LogicIntClient interface {
 	ReceiveACK(ctx context.Context, in *ReceiveACKReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 设备离线
 	Offline(ctx context.Context, in *OfflineReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 发送好友消息
+	SendMessageToFriend(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 发送群组信息
+	SendMessageToGroup(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 订阅房间
 	SubscribeRoom(ctx context.Context, in *SubscribeRoomReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 推送
@@ -113,6 +119,26 @@ func (c *logicIntClient) Offline(ctx context.Context, in *OfflineReq, opts ...gr
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, LogicInt_Offline_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicIntClient) SendMessageToFriend(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LogicInt_SendMessageToFriend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logicIntClient) SendMessageToGroup(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LogicInt_SendMessageToGroup_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +219,10 @@ type LogicIntServer interface {
 	ReceiveACK(context.Context, *ReceiveACKReq) (*emptypb.Empty, error)
 	// 设备离线
 	Offline(context.Context, *OfflineReq) (*emptypb.Empty, error)
+	// 发送好友消息
+	SendMessageToFriend(context.Context, *SendMessageReq) (*emptypb.Empty, error)
+	// 发送群组信息
+	SendMessageToGroup(context.Context, *SendMessageReq) (*emptypb.Empty, error)
 	// 订阅房间
 	SubscribeRoom(context.Context, *SubscribeRoomReq) (*emptypb.Empty, error)
 	// 推送
@@ -229,6 +259,12 @@ func (UnimplementedLogicIntServer) ReceiveACK(context.Context, *ReceiveACKReq) (
 }
 func (UnimplementedLogicIntServer) Offline(context.Context, *OfflineReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Offline not implemented")
+}
+func (UnimplementedLogicIntServer) SendMessageToFriend(context.Context, *SendMessageReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendMessageToFriend not implemented")
+}
+func (UnimplementedLogicIntServer) SendMessageToGroup(context.Context, *SendMessageReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendMessageToGroup not implemented")
 }
 func (UnimplementedLogicIntServer) SubscribeRoom(context.Context, *SubscribeRoomReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubscribeRoom not implemented")
@@ -355,6 +391,42 @@ func _LogicInt_Offline_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LogicIntServer).Offline(ctx, req.(*OfflineReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicInt_SendMessageToFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendMessageReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicIntServer).SendMessageToFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicInt_SendMessageToFriend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicIntServer).SendMessageToFriend(ctx, req.(*SendMessageReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogicInt_SendMessageToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendMessageReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogicIntServer).SendMessageToGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogicInt_SendMessageToGroup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogicIntServer).SendMessageToGroup(ctx, req.(*SendMessageReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -493,6 +565,14 @@ var LogicInt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Offline",
 			Handler:    _LogicInt_Offline_Handler,
+		},
+		{
+			MethodName: "SendMessageToFriend",
+			Handler:    _LogicInt_SendMessageToFriend_Handler,
+		},
+		{
+			MethodName: "SendMessageToGroup",
+			Handler:    _LogicInt_SendMessageToGroup_Handler,
 		},
 		{
 			MethodName: "SubscribeRoom",

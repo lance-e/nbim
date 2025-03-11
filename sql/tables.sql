@@ -12,7 +12,7 @@ CREATE TABLE `device`
     `system_version` varchar(10) NOT NULL COMMENT '系统版本',
     `sdk_version`    varchar(10) NOT NULL COMMENT 'app版本',
     `status`         tinyint(3) NOT NULL DEFAULT '0' COMMENT '在线状态，0：离线；1：在线',
-    `server_addr`      varchar(25) NOT NULL COMMENT '连接层服务器地址',
+    `server_addr`    varchar(25) NOT NULL COMMENT '连接层服务器地址',
     `client_addr`    varchar(25) NOT NULL COMMENT '客户端地址',
     `create_time`    datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`    datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -107,38 +107,76 @@ CREATE TABLE `user`
 -- ----------------------------
 -- 序列号表
 -- ----------------------------
-DROP TABLE IF EXISTS `seq`;
-CREATE TABLE `seq`
-(
-    `id`          bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-    `object_type` tinyint  NOT NULL COMMENT '对象类型,1:用户；2：群组',
-    `object_id`   bigint unsigned NOT NULL COMMENT '对象id',
-    `seq`         bigint unsigned NOT NULL COMMENT '序列号',
-    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_object` (`object_type`,`object_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='序列号';
-
+/* DROP TABLE IF EXISTS `seq`; */
+/* CREATE TABLE `seq` */
+/* ( */
+    /* `id`          bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键', */
+    /* `object_type` tinyint  NOT NULL COMMENT '对象类型,1:用户；2：群组', */
+    /* `object_id`   bigint unsigned NOT NULL COMMENT '对象id', */
+    /* `seq`         bigint unsigned NOT NULL COMMENT '序列号', */
+    /* `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', */
+    /* `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间', */
+    /* PRIMARY KEY (`id`), */
+    /* UNIQUE KEY `uk_object` (`object_type`,`object_id`) */
+/* ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='序列号'; */
+/*  */
 
 -- ----------------------------
 -- 消息表
 -- ----------------------------
-DROP TABLE IF EXISTS `message`;
-CREATE TABLE `message`
-(
-    `id`          bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-    `user_id`     bigint(20) unsigned NOT NULL COMMENT '所属类型的id',
-    `request_id`  bigint(20) NOT NULL COMMENT '请求id',
-    `code`        tinyint(4) NOT NULL COMMENT '消息类型',
-    `content`     blob     NOT NULL COMMENT '消息内容',
-    `seq`         bigint(20) unsigned NOT NULL COMMENT '消息序列号',
-    `send_time`   datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP (3) COMMENT '消息发送时间',
-    `status`      tinyint(255) NOT NULL DEFAULT '0' COMMENT '消息状态，0：未处理1：消息撤回',
-    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_id_seq` (`user_id`, `seq`) USING BTREE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_bin COMMENT ='消息';
+DROP TABLE IF EXISTS `messages`;
+CREATE TABLE `messages` (
+    `seq`           bigint(20) unsigned NOT NULL COMMENT '消息序列号',
+    `sender_id`     bigint(20) unsigned NOT NULL COMMENT '发送者ID',
+    `session_id`   bigint(20) unsigned NOT NULL COMMENT '会话ID:由接收者ID或群组ID计算得出',
+    `content`       text NOT NULL COMMENT '消息内容',
+    `send_time`     bigint(20) unsigned NOT NULL  COMMENT '发送时间(时间戳)',
+    `message_type`  varchar(50) NOT NULL COMMENT '消息类型',
+    `is_deleted`    tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否删除',
+    `create_time`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`seq`),
+    KEY `idx_sender_id_send_time` (`sender_id`, `send_time`) USING BTREE,
+    KEY `idx_session_id_send_time` (`session_id`, `send_time`) USING BTREE
+) ENGINE=InnoDB 
+  DEFAULT CHARSET=utf8mb4 
+  COLLATE=utf8mb4_bin 
+  COMMENT='消息表';
+
+-- ----------------------------
+-- 用户消息表:仅用来示例，每个用户都有自己的用户消息表
+-- ----------------------------
+DROP TABLE IF EXISTS `user_messages`;
+CREATE TABLE `user_messages` (
+    `user_id`       bigint(20) unsigned NOT NULL COMMENT '接收者用户id',
+    `seq`           bigint(20) unsigned NOT NULL COMMENT '消息序列号',
+    `receive_time`  bigint(20) unsigned NOT NULL COMMENT '接收时间(时间戳)',
+    `status`        tinyint(255) NOT NULL DEFAULT '0' COMMENT '消息状态',
+    `is_deleted`    tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否删除',
+    `create_time`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`user_id`, `seq`),
+    KEY `idx_receive_time` (`receive_time`) USING BTREE,
+) ENGINE=InnoDB 
+  DEFAULT CHARSET=utf8mb4 
+  COLLATE=utf8mb4_bin 
+  COMMENT='用户消息表(收件箱)';
+
+-- ----------------------------
+-- 用户群组消息状态表
+-- ----------------------------
+DROP TABLE IF EXISTS `user_group_message_status`;
+CREATE TABLE `user_group_message_status` (
+    `user_id`               bigint(20) unsigned NOT NULL COMMENT '用户id',
+    `group_id`              bigint(20) unsigned NOT NULL COMMENT '群组id',
+    `last_read_message_id`  bigint(20) unsigned DEFAULT NULL COMMENT '最后阅读消息id',
+    `last_read_time`        datetime DEFAULT NULL COMMENT '最后阅读时间',
+    `create_time`           datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`           datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`user_id`, `group_id`),
+) ENGINE=InnoDB 
+  DEFAULT CHARSET=utf8mb4 
+  COLLATE=utf8mb4_bin 
+  COMMENT='用户群组消息状态表';
+
+

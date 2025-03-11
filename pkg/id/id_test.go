@@ -1,16 +1,72 @@
-package gateway
+package id_test
 
 import (
 	"errors"
 	"sync"
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
-//--------------- connection ID generater -----------------
-//  snowflake
-/* +--------------------------------------------------------------------------+ */
-/* | 1 Bit Unused | 41 Bit Timestamp |  10 Bit NodeID  |   12 Bit Sequence ID | */
-/* +--------------------------------------------------------------------------+ */
+// ... (雪花算法代码)
+
+func TestSnowflake(t *testing.T) {
+	// 正常情况
+	snowflake, err := NewSnowflake(1)
+	assert.NoError(t, err)
+
+	ids := make(map[int64]bool)
+	for i := 0; i < 1000; i++ {
+		id := snowflake.Generate()
+		assert.NotZero(t, id)
+		_, ok := ids[id]
+		assert.False(t, ok, "duplicate ID generated")
+		ids[id] = true
+	}
+
+	// 并发生成
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			snowflake, err := NewSnowflake(1)
+			assert.NoError(t, err)
+			for j := 0; j < 100; j++ {
+				id := snowflake.Generate()
+				assert.NotZero(t, id)
+			}
+		}()
+	}
+	wg.Wait()
+
+	// workerID 范围
+	_, err = NewSnowflake(-1)
+	assert.Error(t, err, "worker ID out of range")
+
+	_, err = NewSnowflake(maxNode + 1)
+	assert.Error(t, err, "worker ID out of range")
+
+	snowflake, err = NewSnowflake(maxNode)
+	assert.NoError(t, err)
+	id := snowflake.Generate()
+	assert.NotZero(t, id)
+
+	// 序列号溢出
+	snowflake, err = NewSnowflake(1)
+	assert.NoError(t, err)
+
+	for i := 0; i <= maxSequence; i++ {
+		snowflake.Generate()
+	}
+
+	// 时钟回拨
+	snowflake.lastTimestamp = time.Now().UnixNano()/1e6 + 1000 // 模拟时钟回拨
+	assert.Panics(t, func() {
+		snowflake.Generate()
+	}, "clock is moving backwards")
+}
 
 const (
 	nodeBit        = 10
@@ -21,20 +77,18 @@ const (
 	timestampShift = 22                       //时间戳左移22位
 )
 
-type snowflake struct {
+type Snowflake struct {
 	mutex         sync.Mutex
 	lastTimestamp int64 //上一个毫秒时间戳
 	nodeId        int64 //工作机器id , 最大 2 ^ 10
 	sequence      int64 //记录已经分配的sequence , 最大2 ^ 12
 }
 
-var Snowflake *snowflake
-
-func NewSnowflake(nodeId int64) (*snowflake, error) {
+func NewSnowflake(nodeId int64) (*Snowflake, error) {
 	if nodeId < 0 || nodeId > maxNode {
 		return nil, errors.New("nodeId is wrong")
 	}
-	return &snowflake{
+	return &Snowflake{
 		mutex:         sync.Mutex{},
 		lastTimestamp: time.Now().UnixNano() / 1e6, //毫秒时间戳
 		nodeId:        nodeId,
@@ -43,7 +97,7 @@ func NewSnowflake(nodeId int64) (*snowflake, error) {
 }
 
 // Generate:生成唯一id
-func (s *snowflake) Generate() int64 {
+func (s *Snowflake) Generate() int64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 

@@ -37,6 +37,7 @@ func (*service) UpdateGroup(ctx context.Context, userId int64, groupId int64, na
 	return nil
 }
 
+// 获取群基本信息
 func (*service) GetGroupInfo(ctx context.Context, groupId int64) (*GroupInfo, error) {
 	group, err := GetGroupFromDB(groupId)
 	if err != nil {
@@ -47,6 +48,15 @@ func (*service) GetGroupInfo(ctx context.Context, groupId int64) (*GroupInfo, er
 
 func (*service) GetAllGroupUserJoined(ctx context.Context, userId int64) ([]GroupInfo, error) {
 	return Dao.ListAllGroupUserJoined(userId)
+}
+
+// 获取群全部成员
+func (*service) GetGroupAllMember(ctx context.Context, groupId int64) ([]*GroupMember, error) {
+	group, err := GetGroupFromDB(groupId)
+	if err != nil {
+		return nil, err
+	}
+	return group.GroupAllMember, nil
 }
 
 func (*service) AddGroupMember(ctx context.Context, userId int64, groupId int64, userIds []int64) ([]int64, error) {

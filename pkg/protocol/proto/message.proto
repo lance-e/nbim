@@ -9,7 +9,9 @@ enum CMD{
   Heartbeat =3;                 //心跳
   Reconn = 4;                   //重连
   Ack = 5;                      //确认
+                                //同步sync
 }
+
 
 message Data{
   CMD cmd = 1;
@@ -20,19 +22,23 @@ message Data{
 
 message LoginMsg{
   int64 device_id =1 ;
-  bytes login_body=2 ;                //有效负载
+  int64 user_id =2 ;
+  bytes login_body=3 ;                //有效负载
 }
 
 message UplinkMsg{
-  int64 client_id = 1;
-  int64 session_id = 2;
-  bytes uplink_body= 3;                //有效负载
+  int64 device_id =1 ;
+  int64 user_id =2 ;
+  int64 client_id = 3;
+  uint64 session_id = 4;
+  bytes uplink_body= 5;                //有效负载
 }
 
 message DownlinkMsg{
-  int64 message_id = 1;                 //最后一条消息id
-  int64 session_id = 2;                 //会话id
-  bytes downlink_body=3 ;                //有效负载
+  int64 seq= 1;                          //最后一条消息id
+  int64 sender_id = 2;                   //发送者id
+  uint64 session_id = 3;                 //会话id
+  bytes downlink_body=4 ;                //有效负载
 }
 
 message HeartbeatMsg{
@@ -44,13 +50,17 @@ message ReconnMsg{
   bytes reconn_body=2 ;         //有效负载
 }
 
+//AckMsg: 
+//注意:client_id 是用于回复上行消息, message_id 是回复下行消息
 message AckMsg{
   int64 code = 1;                   //ack码
   string message = 2;               //信息
   CMD toType = 3;                   //ack哪种消息
-  int64 conn_id = 4;                //连接id
-  int64 client_id = 5;              //局部消息序列号
-  int64 session_id = 6;             //会话id
-  int64 message_id = 7 ;                //最后一条消息id
+  int64 conn_id = 4;                //用户id
+  int64 user_id = 5;                //用户id
+  int64 device_id = 6;              //设备id
+  int64 client_id = 7;              //局部消息序列号
+  int64 message_id = 8 ;            //最后一条消息id
+  uint64 session_id = 9;            //会话id
 }
 

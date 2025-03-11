@@ -3,6 +3,7 @@ package state
 import (
 	"context"
 	"fmt"
+	"nbim/pkg/db"
 	"nbim/pkg/protocol/pb"
 	"nbim/pkg/rpc"
 	"nbim/pkg/timer"
@@ -16,6 +17,7 @@ var Wheel timer.TimeWheel
 type connState struct {
 	connID        int64
 	deviceID      int64
+	messageLock   string
 	messageTask   *timer.TaskElement //消息定时任务
 	reconnectTask *timer.TaskElement //重连定时任务
 	heartbeatTask *timer.TaskElement //心跳定时任务
@@ -81,5 +83,7 @@ func (c *connState) clear() {
 	}
 	//TODO:清除其他状态,memory ,redis,router等
 	CS.ConnIdToConnState.Delete(c.connID)
+	db.RedisCli.Del(fmt.Sprintf(db.DeviceIdToConnId, c.deviceID))
+
 	fmt.Printf("已清除[%d]所有状态!\n",c.connID)               
 }

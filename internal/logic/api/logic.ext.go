@@ -56,15 +56,6 @@ func (s *LogicExtServer) PushRoom(ctx context.Context, req *pb.PushRoomReq) (*em
 	return &emptypb.Empty{}, message.App.PushRoom(ctx, req)
 }
 
-// 发送好友消息
-func (s *LogicExtServer) SendMessageToFriend(ctx context.Context, req *pb.SendMessageReq) (*pb.SendMessageResp, error) {
-	userid, deviceid, err := rpc.GetCtxUserInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return message.App.SendMessageToFriend(ctx, userid, deviceid, req)
-}
-
 // 添加好友
 func (s *LogicExtServer) AddFriend(ctx context.Context, req *pb.AddFriendReq) (*emptypb.Empty, error) {
 	userid, _, err := rpc.GetCtxUserInfo(ctx)
@@ -108,15 +99,6 @@ func (s *LogicExtServer) GetAllFriends(ctx context.Context, req *emptypb.Empty) 
 		return nil, err
 	}
 	return friend.App.GetAllFriends(ctx, userid, req)
-}
-
-// 发送群组信息
-func (s *LogicExtServer) SendMessageToGroup(ctx context.Context, req *pb.SendMessageReq) (*pb.SendMessageResp, error) {
-	userid, deviceid, err := rpc.GetCtxUserInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return message.App.SendMessageToGroup(ctx, userid, deviceid, req)
 }
 
 // 创建群聊

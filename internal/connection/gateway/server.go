@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"nbim/configs"
+	"nbim/pkg/id"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
 	"nbim/pkg/rpc"
@@ -15,11 +16,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+var SnowflakeId *id.Snowflake //用于tcp连接的id生成
+
 func RunMain() {
 	//init
 	CmdChannel = make(chan *cmdContext, 2048)
 	var err error
-	Snowflake, err = NewSnowflake(int64(configs.GlobalConfig.GatewayNodeId))
+	SnowflakeId, err = id.NewSnowflake(int64(configs.GlobalConfig.GatewayNodeId))
 	if err != nil {
 		//FIXME
 		panic(err)

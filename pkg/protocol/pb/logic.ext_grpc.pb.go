@@ -20,28 +20,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LogicExt_RegisterDevice_FullMethodName      = "/pb.LogicExt/RegisterDevice"
-	LogicExt_SignIn_FullMethodName              = "/pb.LogicExt/SignIn"
-	LogicExt_GetUser_FullMethodName             = "/pb.LogicExt/GetUser"
-	LogicExt_GetUsers_FullMethodName            = "/pb.LogicExt/GetUsers"
-	LogicExt_UpdateUser_FullMethodName          = "/pb.LogicExt/UpdateUser"
-	LogicExt_SearchUser_FullMethodName          = "/pb.LogicExt/SearchUser"
-	LogicExt_PushRoom_FullMethodName            = "/pb.LogicExt/PushRoom"
-	LogicExt_SendMessageToFriend_FullMethodName = "/pb.LogicExt/SendMessageToFriend"
-	LogicExt_AddFriend_FullMethodName           = "/pb.LogicExt/AddFriend"
-	LogicExt_ViewAddFriend_FullMethodName       = "/pb.LogicExt/ViewAddFriend"
-	LogicExt_AgreeFriend_FullMethodName         = "/pb.LogicExt/AgreeFriend"
-	LogicExt_SetFriend_FullMethodName           = "/pb.LogicExt/SetFriend"
-	LogicExt_GetAllFriends_FullMethodName       = "/pb.LogicExt/GetAllFriends"
-	LogicExt_SendMessageToGroup_FullMethodName  = "/pb.LogicExt/SendMessageToGroup"
-	LogicExt_CreateGroup_FullMethodName         = "/pb.LogicExt/CreateGroup"
-	LogicExt_UpdateGroup_FullMethodName         = "/pb.LogicExt/UpdateGroup"
-	LogicExt_GetGroup_FullMethodName            = "/pb.LogicExt/GetGroup"
-	LogicExt_GetAllGroup_FullMethodName         = "/pb.LogicExt/GetAllGroup"
-	LogicExt_AddGroupMember_FullMethodName      = "/pb.LogicExt/AddGroupMember"
-	LogicExt_UpdateGroupMember_FullMethodName   = "/pb.LogicExt/UpdateGroupMember"
-	LogicExt_DeleteGroupMember_FullMethodName   = "/pb.LogicExt/DeleteGroupMember"
-	LogicExt_GetGroupMember_FullMethodName      = "/pb.LogicExt/GetGroupMember"
+	LogicExt_RegisterDevice_FullMethodName    = "/pb.LogicExt/RegisterDevice"
+	LogicExt_SignIn_FullMethodName            = "/pb.LogicExt/SignIn"
+	LogicExt_GetUser_FullMethodName           = "/pb.LogicExt/GetUser"
+	LogicExt_GetUsers_FullMethodName          = "/pb.LogicExt/GetUsers"
+	LogicExt_UpdateUser_FullMethodName        = "/pb.LogicExt/UpdateUser"
+	LogicExt_SearchUser_FullMethodName        = "/pb.LogicExt/SearchUser"
+	LogicExt_PushRoom_FullMethodName          = "/pb.LogicExt/PushRoom"
+	LogicExt_AddFriend_FullMethodName         = "/pb.LogicExt/AddFriend"
+	LogicExt_ViewAddFriend_FullMethodName     = "/pb.LogicExt/ViewAddFriend"
+	LogicExt_AgreeFriend_FullMethodName       = "/pb.LogicExt/AgreeFriend"
+	LogicExt_SetFriend_FullMethodName         = "/pb.LogicExt/SetFriend"
+	LogicExt_GetAllFriends_FullMethodName     = "/pb.LogicExt/GetAllFriends"
+	LogicExt_CreateGroup_FullMethodName       = "/pb.LogicExt/CreateGroup"
+	LogicExt_UpdateGroup_FullMethodName       = "/pb.LogicExt/UpdateGroup"
+	LogicExt_GetGroup_FullMethodName          = "/pb.LogicExt/GetGroup"
+	LogicExt_GetAllGroup_FullMethodName       = "/pb.LogicExt/GetAllGroup"
+	LogicExt_AddGroupMember_FullMethodName    = "/pb.LogicExt/AddGroupMember"
+	LogicExt_UpdateGroupMember_FullMethodName = "/pb.LogicExt/UpdateGroupMember"
+	LogicExt_DeleteGroupMember_FullMethodName = "/pb.LogicExt/DeleteGroupMember"
+	LogicExt_GetGroupMember_FullMethodName    = "/pb.LogicExt/GetGroupMember"
 )
 
 // LogicExtClient is the client API for LogicExt service.
@@ -62,8 +60,6 @@ type LogicExtClient interface {
 	SearchUser(ctx context.Context, in *SearchUserReq, opts ...grpc.CallOption) (*SearchUserResp, error)
 	// 推送信息到房间
 	PushRoom(ctx context.Context, in *PushRoomReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 发送好友消息
-	SendMessageToFriend(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*SendMessageResp, error)
 	// 添加好友
 	AddFriend(ctx context.Context, in *AddFriendReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 查看好友申请列表
@@ -74,8 +70,6 @@ type LogicExtClient interface {
 	SetFriend(ctx context.Context, in *SetFriendReq, opts ...grpc.CallOption) (*SetFriendResp, error)
 	// 获取所有好友
 	GetAllFriends(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetAllFriendResp, error)
-	// 发送群组信息
-	SendMessageToGroup(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*SendMessageResp, error)
 	// 创建群聊
 	CreateGroup(ctx context.Context, in *CreateGroupReq, opts ...grpc.CallOption) (*CreateGroupResp, error)
 	// 更新群组
@@ -172,16 +166,6 @@ func (c *logicExtClient) PushRoom(ctx context.Context, in *PushRoomReq, opts ...
 	return out, nil
 }
 
-func (c *logicExtClient) SendMessageToFriend(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*SendMessageResp, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SendMessageResp)
-	err := c.cc.Invoke(ctx, LogicExt_SendMessageToFriend_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *logicExtClient) AddFriend(ctx context.Context, in *AddFriendReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
@@ -226,16 +210,6 @@ func (c *logicExtClient) GetAllFriends(ctx context.Context, in *emptypb.Empty, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAllFriendResp)
 	err := c.cc.Invoke(ctx, LogicExt_GetAllFriends_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *logicExtClient) SendMessageToGroup(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*SendMessageResp, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SendMessageResp)
-	err := c.cc.Invoke(ctx, LogicExt_SendMessageToGroup_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -340,8 +314,6 @@ type LogicExtServer interface {
 	SearchUser(context.Context, *SearchUserReq) (*SearchUserResp, error)
 	// 推送信息到房间
 	PushRoom(context.Context, *PushRoomReq) (*emptypb.Empty, error)
-	// 发送好友消息
-	SendMessageToFriend(context.Context, *SendMessageReq) (*SendMessageResp, error)
 	// 添加好友
 	AddFriend(context.Context, *AddFriendReq) (*emptypb.Empty, error)
 	// 查看好友申请列表
@@ -352,8 +324,6 @@ type LogicExtServer interface {
 	SetFriend(context.Context, *SetFriendReq) (*SetFriendResp, error)
 	// 获取所有好友
 	GetAllFriends(context.Context, *emptypb.Empty) (*GetAllFriendResp, error)
-	// 发送群组信息
-	SendMessageToGroup(context.Context, *SendMessageReq) (*SendMessageResp, error)
 	// 创建群聊
 	CreateGroup(context.Context, *CreateGroupReq) (*CreateGroupResp, error)
 	// 更新群组
@@ -401,9 +371,6 @@ func (UnimplementedLogicExtServer) SearchUser(context.Context, *SearchUserReq) (
 func (UnimplementedLogicExtServer) PushRoom(context.Context, *PushRoomReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PushRoom not implemented")
 }
-func (UnimplementedLogicExtServer) SendMessageToFriend(context.Context, *SendMessageReq) (*SendMessageResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SendMessageToFriend not implemented")
-}
 func (UnimplementedLogicExtServer) AddFriend(context.Context, *AddFriendReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddFriend not implemented")
 }
@@ -418,9 +385,6 @@ func (UnimplementedLogicExtServer) SetFriend(context.Context, *SetFriendReq) (*S
 }
 func (UnimplementedLogicExtServer) GetAllFriends(context.Context, *emptypb.Empty) (*GetAllFriendResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllFriends not implemented")
-}
-func (UnimplementedLogicExtServer) SendMessageToGroup(context.Context, *SendMessageReq) (*SendMessageResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SendMessageToGroup not implemented")
 }
 func (UnimplementedLogicExtServer) CreateGroup(context.Context, *CreateGroupReq) (*CreateGroupResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGroup not implemented")
@@ -593,24 +557,6 @@ func _LogicExt_PushRoom_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LogicExt_SendMessageToFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SendMessageReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LogicExtServer).SendMessageToFriend(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: LogicExt_SendMessageToFriend_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LogicExtServer).SendMessageToFriend(ctx, req.(*SendMessageReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _LogicExt_AddFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddFriendReq)
 	if err := dec(in); err != nil {
@@ -697,24 +643,6 @@ func _LogicExt_GetAllFriends_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LogicExtServer).GetAllFriends(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _LogicExt_SendMessageToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SendMessageReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LogicExtServer).SendMessageToGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: LogicExt_SendMessageToGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LogicExtServer).SendMessageToGroup(ctx, req.(*SendMessageReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -899,10 +827,6 @@ var LogicExt_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LogicExt_PushRoom_Handler,
 		},
 		{
-			MethodName: "SendMessageToFriend",
-			Handler:    _LogicExt_SendMessageToFriend_Handler,
-		},
-		{
 			MethodName: "AddFriend",
 			Handler:    _LogicExt_AddFriend_Handler,
 		},
@@ -921,10 +845,6 @@ var LogicExt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllFriends",
 			Handler:    _LogicExt_GetAllFriends_Handler,
-		},
-		{
-			MethodName: "SendMessageToGroup",
-			Handler:    _LogicExt_SendMessageToGroup_Handler,
 		},
 		{
 			MethodName: "CreateGroup",

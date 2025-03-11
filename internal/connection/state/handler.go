@@ -3,8 +3,10 @@ package state
 import (
 	"context"
 	"fmt"
+	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
 	"nbim/pkg/rpc"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -55,11 +57,23 @@ func login(ctx *cmdContext, data *pb.Data) {
 	if err != nil {
 		fmt.Println("login unmarshal failed")
 	}
+	//状态初始化
 	err = CS.connLogin(ctx.Ctx, login.DeviceId, ctx.ConnId)
 	if err != nil {
 		fmt.Printf("login failed ,error-[%s]\n", err.Error())
 		return
 	}
+	//调用逻辑层设备上线
+	_, err = rpc.GetLogicIntClient().ConnSignIn(*ctx.Ctx, &pb.ConnSignInReq{
+		DeviceId: login.DeviceId,
+		UserId:   login.UserId,
+		//TODO:more information(token......)
+	})
+	if err != nil {
+		fmt.Printf("logic server connsignin failed\n")
+		return
+	}
+
 	//发送登陆ack
 	ack := pb.AckMsg{
 		Code:     0,
@@ -86,8 +100,32 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 	if err != nil {
 		fmt.Println("uplinkMessage unmarshal failed")
 	}
-	//先调用业务层的rpc接口，只有rpc返回成功了，才能更新最大消息id和响应客户端成功
+	//比较更新clientID:确保用户维度消息幂等有序
 	if CS.compareAndIncrementClientID(ctx.Ctx, ctx.ConnId, up.ClientId, up.SessionId) {
+		//先调用业务层的rpc接口，只有rpc返回成功了，才能更新最大消息id和响应客户端成功
+		//TODO:调用业务层,在存储后，下发消息
+		sendMsgReq := &pb.SendMessageReq{
+			UserId:    up.UserId,
+			DeviceId:  up.DeviceId,
+			SessionId: up.SessionId, //&运算去掉最高位
+			Content:   up.UplinkBody,
+			SendTime:  time.Now().UnixMicro(),
+		}
+		//解析session
+		if up.SessionId>>63 == 1 {
+			//群聊
+			_, err = rpc.GetLogicIntClient().SendMessageToGroup(*ctx.Ctx, sendMsgReq)
+		} else {
+			//单聊
+			_, err = rpc.GetLogicIntClient().SendMessageToFriend(*ctx.Ctx, sendMsgReq)
+		}
+		//等待rpc成功返回才继续发送ack，
+		//失败代表分配seqID失败获取落库失败，
+		//防止丢消息，需要客户端重传
+		if err != nil {
+			fmt.Printf("message storage database failed\n")
+			return
+		}
 		//发送上行消息ack
 		ack := pb.AckMsg{
 			Code:     0,
@@ -102,13 +140,6 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 			return
 		}
 		sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
-
-		//TODO:调用业务层,在存储后，下发消息
-		CS.ConnIdToConnState.Range(func(key, value any) bool {
-			// 给每一个连接发
-			sendDownlinkMessage(ctx.Ctx, key.(int64), CS.MessageId, up.SessionId, up.UplinkBody)
-			return true
-		})
 
 	}
 	fmt.Print("已处理上行消息\n")
@@ -170,20 +201,28 @@ func ack(ctx *cmdContext, data *pb.Data) {
 		fmt.Println("AckMsg unmarshal failed")
 		return
 	}
+	//业务的ack
+	_, err = rpc.GetLogicIntClient().ReceiveACK(*ctx.Ctx, &pb.ReceiveACKReq{
+		UserId:      am.UserId,
+		DeviceId:    am.DeviceId,
+		DeviceAck:   am.MessageId,
+		ReceiveTime: time.Now().UnixMilli(),
+	})
+	if err != nil {
+		logger.Logger.Debug("ReceiveACK rpc failed")
+		return
+	}
+	//状态的ack
 	CS.connAck(ctx.Ctx, ctx.ConnId, am.SessionId, am.MessageId)
+
 	fmt.Printf("已处理下行消息ack\n")
 }
 
 // 发送下行实体消息
-// TODO:
-func sendDownlinkMessage(ctx *context.Context, connID, msgId, sessionId int64, body []byte) {
+// TODO:(？单聊情况下：这里的sessionID是不是应该传发送方的用户id)
+func sendDownlinkMessage(ctx context.Context, connID int64, down *pb.DownlinkMsg) {
 	//推送下行实体消息
-	down := pb.DownlinkMsg{
-		MessageId:    msgId,
-		SessionId:    sessionId,
-		DownlinkBody: body,
-	}
-	payload, err := proto.Marshal(&down)
+	payload, err := proto.Marshal(down)
 	if err != nil {
 		fmt.Printf("DownlinkMsg marshal failed\n")
 		return
@@ -191,7 +230,7 @@ func sendDownlinkMessage(ctx *context.Context, connID, msgId, sessionId int64, b
 	sendMsg(connID, pb.CMD_Downlink, payload)
 	//------------------------------------------
 	//更新状态保存的最后发送的消息
-	err = CS.AppendLastMsg(ctx, connID, &down)
+	err = CS.AppendLastMsg(ctx, connID, down)
 	if err != nil {
 		panic(err)
 	}

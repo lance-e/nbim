@@ -3,6 +3,9 @@ package logic
 import (
 	"nbim/configs"
 	"nbim/internal/logic/api"
+	"nbim/internal/logic/domain/device"
+	"nbim/internal/logic/domain/group"
+	"nbim/internal/logic/proxy"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
 	"net"
@@ -13,6 +16,11 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
+
+func init() {
+	proxy.DevcieProxy = device.Service
+	proxy.GroupProxy = group.Service
+}
 
 func RunMain() {
 	server := grpc.NewServer() //TODO:UnaryInterceptor

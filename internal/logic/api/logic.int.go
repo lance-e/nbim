@@ -17,7 +17,7 @@ type LogicIntServer struct {
 
 // 权限校验
 func (s *LogicIntServer) Auth(context.Context, *pb.AuthReq) (*emptypb.Empty, error) {
-
+	//TODO
 	return new(emptypb.Empty), nil
 }
 
@@ -39,6 +39,16 @@ func (s *LogicIntServer) ReceiveACK(ctx context.Context, req *pb.ReceiveACKReq) 
 // 设备离线
 func (s *LogicIntServer) Offline(ctx context.Context, req *pb.OfflineReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, device.App.Offline(ctx, req)
+}
+
+// 发送好友消息
+func (s *LogicIntServer) SendMessageToFriend(ctx context.Context, req *pb.SendMessageReq) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, message.App.SendMessageToFriend(ctx, req)
+}
+
+// 发送群组信息
+func (s *LogicIntServer) SendMessageToGroup(ctx context.Context, req *pb.SendMessageReq) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, message.App.SendMessageToGroup(ctx, req)
 }
 
 // 订阅房间

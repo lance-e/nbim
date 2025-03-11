@@ -23,8 +23,7 @@ service LogicExt{
   rpc  PushRoom (PushRoomReq) returns (google.protobuf.Empty);
 
   
-  //发送好友消息
-  rpc  SendMessageToFriend (SendMessageReq) returns (SendMessageResp);
+
   //添加好友
   rpc  AddFriend (AddFriendReq) returns (google.protobuf.Empty);
   //查看好友申请列表
@@ -37,8 +36,7 @@ service LogicExt{
   rpc  GetAllFriends (google.protobuf.Empty) returns (GetAllFriendResp);
 
 
-  //发送群组信息
-  rpc  SendMessageToGroup (SendMessageReq) returns (SendMessageResp);
+  
   //创建群聊
   rpc  CreateGroup (CreateGroupReq) returns (CreateGroupResp);
   //更新群组
@@ -149,18 +147,6 @@ message PushRoomReq{
   int64 send_time = 4;          //消息发送时间戳,精确到毫秒
   bool  is_persist = 5;         //是否将消息持久化
   bool is_priority =6;          //是否优先推送
-}
-
-//发送消息请求
-message SendMessageReq{
-  int64 receiver_id = 1 ;       //接受者id 用户id/群组id
-  bytes content = 2;            //消息内容
-  int64 send_time = 3;          //消息发送时间戳,精确到毫秒
-}
-
-//发送消息响应
-message SendMessageResp{
-  int64 seq = 1;                //消息序列号
 }
 
 //添加好友请求

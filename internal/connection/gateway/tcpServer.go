@@ -57,7 +57,7 @@ func onMessage(conn *netreactors.TcpConnection, buf *netreactors.Buffer, t time.
 func onConnection(conn *netreactors.TcpConnection) {
 	if conn.Connected() {
 		//新建连接	
-		id := Snowflake.Generate()
+		id := SnowflakeId.Generate()
 		info := &ConnInfo{
 			ConnID:   id,
 			ConnType: ConnTypeTCP,
