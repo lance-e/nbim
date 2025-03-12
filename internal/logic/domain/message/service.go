@@ -34,8 +34,8 @@ func (*service) SendToGroup(senderId int64, deviceId int64, sessionId uint64, co
 	}
 
 	//step2:落库(TODO:异步落库)
-	msgs := []Messages{
-		Messages{
+	msgs := []*Messages{
+		&Messages{
 			Seq:         id,
 			SenderId:    senderId,
 			SessionId:   sessionId,
@@ -47,7 +47,7 @@ func (*service) SendToGroup(senderId int64, deviceId int64, sessionId uint64, co
 			UpdateTime:  time.Now(),
 		},
 	}
-	err = Dao.Save(msgs)
+	err = Dao.Save(msgs[0])
 	if err != nil {
 		return err
 	}
@@ -79,8 +79,8 @@ func (*service) SendToUser(senderId int64, deviceId int64, userId int64, content
 	//step1:获取seqID
 	id := SnowflakeId.Generate()
 	//step2:落库(TODO:异步落库)
-	msgs := []Messages{
-		Messages{
+	msgs := []*Messages{
+		&Messages{
 			Seq:         id,
 			SenderId:    senderId,
 			SessionId:   uint64(userId),
@@ -94,7 +94,7 @@ func (*service) SendToUser(senderId int64, deviceId int64, userId int64, content
 	}
 
 	//--先写入总表
-	err := Dao.Save(msgs)
+	err := Dao.Save(msgs[0])
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (*service) SendToUser(senderId int64, deviceId int64, userId int64, content
 	return nil
 }
 
-func (*service) SendToDevice(device *pb.Device, msgs []Messages) error {
+func (*service) SendToDevice(device *pb.Device, msgs []*Messages) error {
 	downs := make([]*pb.DownlinkMsg, len(msgs))
 	for _, msg := range msgs {
 		downs = append(downs, &pb.DownlinkMsg{

@@ -2,6 +2,7 @@ package device
 
 import (
 	"context"
+	"fmt"
 	"nbim/pkg/gerror"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
@@ -129,6 +130,7 @@ func (*service) ListAllOnlineDeviceByUserId(ctx context.Context, userid int64) (
 		return nil, err
 	}
 	if devices != nil {
+		fmt.Printf("%d devices\n", len(devices))
 		pbDevices := make([]*pb.Device, len(devices))
 		for i := range devices {
 			pbDevices[i] = devices[i].ToProtoDevice()

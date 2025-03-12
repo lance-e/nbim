@@ -154,7 +154,7 @@ func (c *catheState) AppendLastMsg(ctx context.Context, connId int64, downlinkMs
 
 	connS := state.(*connState)
 	//设置msgLock,确保是目标最新的消息
-	connS.messageLock = fmt.Sprintf("%d_%d", downlinkMsg.SessionId, downlinkMsg.MessageId)
+	connS.messageLock = fmt.Sprintf("%d_%d", downlinkMsg.SessionId, downlinkMsg.Seq)
 	//设置消息定时器，直到被收到下行消息的ack
 	connS.SetMessageTimer()
 

@@ -24,7 +24,3 @@ func (*seq) GetGroupMsgSeq(groupId int64) (int64, error) {
 	}
 	return result, nil
 }
-
-func (*seq) GetUserMsgSeq() (int64, error) {
-
-}

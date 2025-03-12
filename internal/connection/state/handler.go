@@ -232,6 +232,7 @@ func sendDownlinkMessage(ctx context.Context, connID int64, down *pb.DownlinkMsg
 	//更新状态保存的最后发送的消息
 	err = CS.AppendLastMsg(ctx, connID, down)
 	if err != nil {
+		//TODO:重启state后，内存中的状态信息会消失,需要兜底
 		panic(err)
 	}
 }
@@ -266,8 +267,11 @@ func sendMsg(connID int64, cmd pb.CMD, payload []byte) {
 	if err != nil {
 		fmt.Printf("state handler sendMsg: protobuf Marshal failed\n")
 	}
-	rpc.GetGatewayClient().SendDownlinkMessage(context.TODO(), &pb.GatewayRequest{
+	_, err = rpc.GetGatewayClient().SendDownlinkMessage(context.TODO(), &pb.GatewayRequest{
 		ConnId: connID,
 		Data:   d,
 	})
+	if err != nil {
+		fmt.Printf("GetGatewayClient().SendDownlinkMessage failed\n")
+	}
 }

@@ -60,8 +60,12 @@ func handPushMsg(c *connect, data []byte) *Message {
 	msg := &Message{}
 	json.Unmarshal(pushMsg.DownlinkBody, msg)
 	ackMsg := &pb.AckMsg{
-		ToType: pb.CMD_Uplink,
-		ConnId: c.connID,
+		ToType:    pb.CMD_Uplink,
+		ConnId:    c.connID,
+		UserId:    3,
+		DeviceId:  3,
+		MessageId: pushMsg.Seq,
+		SessionId: 2 | 1<<63,
 	}
 	ackData, _ := proto.Marshal(ackMsg)
 	c.send(pb.CMD_Ack, ackData)

@@ -56,10 +56,12 @@ func (s *StateServer) ClearConnState(ctx context.Context, req *pb.StateRequest) 
 
 func (s *StateServer) DelieverDownlinkMessage(ctx context.Context, req *pb.DelieverDownlinkMessageReq) (*emptypb.Empty, error) {
 	//获取到指定设备的连接id
-	connId, err := db.RedisCli.Get(fmt.Sprint(db.DeviceIdToConnId, req.DeviceId)).Int64()
+	connId, err := db.RedisCli.Get(fmt.Sprintf(db.DeviceIdToConnId, req.DeviceId)).Int64()
 	if err != nil {
 		return &emptypb.Empty{}, err
 	}
+	fmt.Printf("DelieverDownlinkMessage!!!!!!!!, connId-[%d]\n", connId)
+
 	//发送下行消息
 	for _, down := range req.Downs {
 		sendDownlinkMessage(context.TODO(), connId, down)

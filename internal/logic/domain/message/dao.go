@@ -13,8 +13,8 @@ var Dao = new(dao)
 //-------------------------all message -------------
 
 // 批量保存
-func (*dao) Save(msg []Messages) error {
-	err := db.DB.Create(&msg).Error
+func (*dao) Save(msg *Messages) error {
+	err := db.DB.Create(msg).Error
 	if err != nil {
 		return gerror.WrapError(err)
 	}
@@ -22,8 +22,8 @@ func (*dao) Save(msg []Messages) error {
 }
 
 // 批量获取消息
-func (*dao) GetMany(seqs []int64) ([]Messages, error) {
-	var msgs []Messages
+func (*dao) GetMany(seqs []int64) ([]*Messages, error) {
+	var msgs []*Messages
 	err := db.DB.Order("send_time").Find(&msgs, seqs).Error
 	if err != nil {
 		return nil, gerror.WrapError(err)
@@ -47,11 +47,11 @@ func (*dao) DeleteMany(seqs []int64) error {
 //------------------------user message ----------
 
 // 批量保存
-func (*dao) SaveUserMsg(msgs []Messages) error {
+func (*dao) SaveUserMsg(msgs []*Messages) error {
 	u1 := make([]UserMessages, 2*len(msgs))
 	for _, msg := range msgs {
 		u1 = append(u1, UserMessages{
-			UserId:      msg.ReceiveId,
+			UserId:      int64(msg.SessionId),
 			Seq:         msg.Seq,
 			ReceiveTime: time.Now().UnixMilli(),
 			Status:      0, //接收者未读

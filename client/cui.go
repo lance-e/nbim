@@ -228,7 +228,7 @@ func pasteDown(g *gocui.Gui, cv *gocui.View) error {
 
 func main() {
 	// step1 创建chat的核心对象
-	chat = sdk.NewChat(net.ParseIP("127.0.0.1"), 8001, "lance", "12312321", 0)
+	chat = sdk.NewChat(net.ParseIP("127.0.0.1"), 8001, "lance", "3", 2|1<<63)
 	// step2 创建 GUI 图层对象并进行参与与回调函数的配置
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {

@@ -58,6 +58,8 @@ func (chat *Chat) Send(msg *Message) {
 	data, _ := json.Marshal(msg)
 	//key := fmt.Sprintf("%d", chat.conn.connID)
 	upMsg := &pb.UplinkMsg{
+		DeviceId: 3,
+		UserId:   3,
 		ClientId: chat.getClientID(chat.SessionID),
 		// ConnId:    chat.conn.connID,
 		SessionId: chat.SessionID,
@@ -87,7 +89,7 @@ func (chat *Chat) ReConn() {
 	chat.Lock()
 	defer chat.Unlock()
 	// 需要重置clientId
-	chat.MsgClientIDTable = make(map[int64]int64)
+	chat.MsgClientIDTable = make(map[uint64]int64)
 	chat.conn.reConn() //重新启动一个tcp连接
 	chat.reConn()
 }
@@ -139,8 +141,8 @@ func (chat *Chat) getClientID(sessionID uint64) int64 {
 
 func (chat *Chat) login() {
 	loginMsg := pb.LoginMsg{
-		DeviceId: 123,
-		UserId:   1,
+		DeviceId: 3,
+		UserId:   3,
 	}
 	palyload, err := proto.Marshal(&loginMsg)
 	if err != nil {

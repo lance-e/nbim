@@ -2,6 +2,7 @@ package message
 
 import (
 	"context"
+	"fmt"
 	"nbim/pkg/protocol/pb"
 )
 
@@ -27,7 +28,7 @@ func (*app) Sync(ctx context.Context, req *pb.SyncReq) (*pb.SyncResp, error) {
 
 // 设备收到消息回执
 func (*app) ReceiveACK(ctx context.Context, req *pb.ReceiveACKReq) error {
-
+	fmt.Printf("message-[%d] ack\n", req.DeviceAck)
 	return nil
 }
 

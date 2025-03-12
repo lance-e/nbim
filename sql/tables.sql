@@ -128,7 +128,7 @@ DROP TABLE IF EXISTS `messages`;
 CREATE TABLE `messages` (
     `seq`           bigint(20) unsigned NOT NULL COMMENT '消息序列号',
     `sender_id`     bigint(20) unsigned NOT NULL COMMENT '发送者ID',
-    `session_id`   bigint(20) unsigned NOT NULL COMMENT '会话ID:由接收者ID或群组ID计算得出',
+    `session_id`    bigint(20) unsigned NOT NULL COMMENT '会话ID:由接收者ID或群组ID计算得出',
     `content`       text NOT NULL COMMENT '消息内容',
     `send_time`     bigint(20) unsigned NOT NULL  COMMENT '发送时间(时间戳)',
     `message_type`  varchar(50) NOT NULL COMMENT '消息类型',
@@ -140,11 +140,10 @@ CREATE TABLE `messages` (
     KEY `idx_session_id_send_time` (`session_id`, `send_time`) USING BTREE
 ) ENGINE=InnoDB 
   DEFAULT CHARSET=utf8mb4 
-  COLLATE=utf8mb4_bin 
-  COMMENT='消息表';
+  COLLATE=utf8mb4_bin COMMENT='消息表';
 
 -- ----------------------------
--- 用户消息表:仅用来示例，每个用户都有自己的用户消息表
+-- 用户消息表:用户写信箱，共享一张表
 -- ----------------------------
 DROP TABLE IF EXISTS `user_messages`;
 CREATE TABLE `user_messages` (
@@ -156,11 +155,10 @@ CREATE TABLE `user_messages` (
     `create_time`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`user_id`, `seq`),
-    KEY `idx_receive_time` (`receive_time`) USING BTREE,
+    KEY `idx_receive_time` (`receive_time`) USING BTREE
 ) ENGINE=InnoDB 
   DEFAULT CHARSET=utf8mb4 
-  COLLATE=utf8mb4_bin 
-  COMMENT='用户消息表(收件箱)';
+  COLLATE=utf8mb4_bin COMMENT='用户消息表(收件箱)';
 
 -- ----------------------------
 -- 用户群组消息状态表
@@ -173,10 +171,9 @@ CREATE TABLE `user_group_message_status` (
     `last_read_time`        datetime DEFAULT NULL COMMENT '最后阅读时间',
     `create_time`           datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`           datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`user_id`, `group_id`),
+    PRIMARY KEY (`user_id`, `group_id`)
 ) ENGINE=InnoDB 
   DEFAULT CHARSET=utf8mb4 
-  COLLATE=utf8mb4_bin 
-  COMMENT='用户群组消息状态表';
+  COLLATE=utf8mb4_bin COMMENT='用户群组消息状态表';
 
 

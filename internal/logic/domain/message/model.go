@@ -4,8 +4,8 @@ import "time"
 
 // 消息总表
 type Messages struct {
-	Seq         int64
 	SenderId    int64
+	Seq         int64
 	SessionId   uint64
 	Content     []byte
 	SendTime    int64 //时间戳
