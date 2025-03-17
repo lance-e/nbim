@@ -19,6 +19,13 @@ build:
 	go build -o bin/logicHttp cmd/connection/logicHttp/main.go
 	go build -o bin/ipconfig cmd/connection/ipconfig/main.go
 	go build -o bin/logic cmd/logic/main.go
+	mkdir log
+	touch log/gateway.log
+	touch log/state.log
+	touch log/logicHttp.log
+	touch log/ipconfig.log
+	touch log/logic.log
+
 
 run:
 	nohup ./bin/gateway > log/gateway.log &

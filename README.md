@@ -50,10 +50,10 @@
 - Logic:逻辑层，负责设备信息，好友信息，群组消息管理，消息转发等逻辑。
 
 ### 快速开始
-##### 建表:
+##### 建库建表:
 
 ~~~shell
-mysql -u lance -p nbim < ./sql/tables.sql
+mysql -u lance -p < ./sql/tables.sql
 ~~~
 
 ##### 构建：
