@@ -26,7 +26,7 @@ func (s *LogicIntServer) ConnSignIn(ctx context.Context, req *pb.ConnSignInReq) 
 	return &emptypb.Empty{}, device.App.ConnSignIn(ctx, req)
 }
 
-// 消息同步
+// 离线消息同步
 func (s *LogicIntServer) Sync(ctx context.Context, req *pb.SyncReq) (*pb.SyncResp, error) {
 	return message.App.Sync(ctx, req)
 }
