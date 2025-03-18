@@ -75,13 +75,14 @@ message SignInResp{
 
 //用户信息
 message User{
-  string username = 1;              //用户名
-  string nickname = 2;              //昵称
-  int32 sex = 3;                    //性别
-  string avatar_url = 4;            //头像
-  string extra = 5;                 //附加字段
-  int64 create_time = 6;            //创建时间
-  int64 update_time = 7 ;           //更新时间
+  int64 user_id = 1;                //用户id
+  string username = 2;              //用户名
+  string nickname = 3;              //昵称
+  int32 sex = 4;                    //性别
+  string avatar_url = 5;            //头像
+  string extra = 6;                 //附加字段
+  int64 create_time = 7;            //创建时间
+  int64 update_time = 8 ;           //更新时间
 }
 
 //获取用户信息请求

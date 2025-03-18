@@ -1,0 +1,7 @@
+WARNING:(ast) sonic only supports go1.17~1.23, but your environment is not suitable
+2025-03-18 16:37:44.257	INFO	db/db.go:25	init mysql begin
+2025-03-18 16:37:44.258	INFO	db/db.go:34	init mysql done!
+2025-03-18 16:37:44.258	INFO	db/db.go:38	init redis begin
+2025-03-18 16:37:44.259	INFO	db/db.go:49	init redis done!
+2025-03-18 16:37:44.259	INFO	logic/server.go:47	logic RPC 服务启动
+2025-03-18 16:38:41.634	INFO	logic/server.go:34	server stop	{"signal": "terminated"}

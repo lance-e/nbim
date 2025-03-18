@@ -19,19 +19,28 @@ build:
 	go build -o bin/logicHttp cmd/connection/logicHttp/main.go
 	go build -o bin/ipconfig cmd/connection/ipconfig/main.go
 	go build -o bin/logic cmd/logic/main.go
-	mkdir log
+	mkdir log -p
 	touch log/gateway.log
 	touch log/state.log
 	touch log/logicHttp.log
 	touch log/ipconfig.log
 	touch log/logic.log
 
-
-run:
+gateway:
 	nohup ./bin/gateway > log/gateway.log &
+
+state:
 	nohup ./bin/state > log/state.log &
+
+logicHttp:
 	nohup ./bin/logicHttp > log/logicHttp.log &
+	
+ipconfig:
 	nohup ./bin/ipconfig > log/ipconfig.log &
+
+logic:
 	nohup ./bin/logic > log/logic.log &
+
+run: gateway state logicHttp ipconfig logic
 
 all:  proto build

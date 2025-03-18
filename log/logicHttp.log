@@ -1,0 +1,27 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /register/device          --> nbim/internal/connection/logicHttp.RegisterDevice (3 handlers)
+[GIN-debug] POST   /signin                   --> nbim/internal/connection/logicHttp.SignIn (3 handlers)
+[GIN-debug] POST   /v1/user/get              --> nbim/internal/connection/logicHttp.GetUser (4 handlers)
+[GIN-debug] POST   /v1/user/update           --> nbim/internal/connection/logicHttp.UpdateUser (4 handlers)
+[GIN-debug] POST   /v1/user/search           --> nbim/internal/connection/logicHttp.SearchUser (4 handlers)
+[GIN-debug] POST   /v1/friend/add            --> nbim/internal/connection/logicHttp.AddFriend (4 handlers)
+[GIN-debug] POST   /v1/friend/add-list       --> nbim/internal/connection/logicHttp.ViewAddFriend (4 handlers)
+[GIN-debug] POST   /v1/friend/agree          --> nbim/internal/connection/logicHttp.AgreeFriend (4 handlers)
+[GIN-debug] POST   /v1/friend/set            --> nbim/internal/connection/logicHttp.SetFriend (4 handlers)
+[GIN-debug] POST   /v1/friend/all            --> nbim/internal/connection/logicHttp.GetAllFriends (4 handlers)
+[GIN-debug] POST   /v1/group/create          --> nbim/internal/connection/logicHttp.CreateGroup (4 handlers)
+[GIN-debug] POST   /v1/group/update          --> nbim/internal/connection/logicHttp.UpdateGroup (4 handlers)
+[GIN-debug] POST   /v1/group/get             --> nbim/internal/connection/logicHttp.GetGroup (4 handlers)
+[GIN-debug] POST   /v1/group/all             --> nbim/internal/connection/logicHttp.GetAllGroup (4 handlers)
+[GIN-debug] POST   /v1/group-member/add      --> nbim/internal/connection/logicHttp.AddGroupMember (4 handlers)
+[GIN-debug] POST   /v1/group-member/update   --> nbim/internal/connection/logicHttp.UpdateGroupMember (4 handlers)
+[GIN-debug] POST   /v1/group-member/delete   --> nbim/internal/connection/logicHttp.DeleteGroupMember (4 handlers)
+[GIN-debug] POST   /v1/group-member/get      --> nbim/internal/connection/logicHttp.GetGroupMember (4 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 0.0.0.0:8004
