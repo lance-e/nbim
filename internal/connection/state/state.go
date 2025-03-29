@@ -51,7 +51,7 @@ func NewConnState(connId int64, deviceId int64) *connState {
 	//-------------
 
 	//全局时间轮中添加心跳任务
-	Wheel.AddTask(state.heartbeatTask, time.Now().Add(5*time.Second))
+	Wheel.AddTask(state.heartbeatTask, time.Now().Add(30*time.Second))
 	return state
 }
 
@@ -84,6 +84,9 @@ func (c *connState) clear() {
 	//TODO:清除其他状态,memory ,redis,router等
 	CS.ConnIdToConnState.Delete(c.connID)
 	db.RedisCli.Del(fmt.Sprintf(db.DeviceIdToConnId, c.deviceID))
+	rpc.GetLogicIntClient().Offline(context.TODO(), &pb.OfflineReq{
+		DeviceId: c.deviceID,
+	})
 
 	fmt.Printf("已清除[%d]所有状态!\n",c.connID)               
 }

@@ -48,9 +48,8 @@ func (*dao) DeleteMany(seqs []int64) error {
 
 // 批量保存
 func (*dao) SaveUserMsg(msgs []*Messages) error {
-	u1 := make([]UserMessages, 2*len(msgs))
 	for _, msg := range msgs {
-		u1 = append(u1, UserMessages{
+		err := db.DB.Create(&UserMessages{
 			UserId:      int64(msg.SessionId),
 			Seq:         msg.Seq,
 			ReceiveTime: time.Now().UnixMilli(),
@@ -58,8 +57,11 @@ func (*dao) SaveUserMsg(msgs []*Messages) error {
 			IsDeleted:   0,
 			CreateTime:  time.Now(),
 			UpdateTime:  time.Now(),
-		})
-		u1 = append(u1, UserMessages{
+		}).Error
+		if err != nil {
+			return gerror.WrapError(err)
+		}
+		err = db.DB.Create(&UserMessages{
 			UserId:      msg.SenderId,
 			Seq:         msg.Seq,
 			ReceiveTime: time.Now().UnixMilli(),
@@ -67,12 +69,12 @@ func (*dao) SaveUserMsg(msgs []*Messages) error {
 			IsDeleted:   0,
 			CreateTime:  time.Now(),
 			UpdateTime:  time.Now(),
-		})
+		}).Error
+		if err != nil {
+			return gerror.WrapError(err)
+		}
 	}
-	err := db.DB.Create(&u1).Error
-	if err != nil {
-		return gerror.WrapError(err)
-	}
+
 	return nil
 }
 

@@ -29,6 +29,7 @@ func (*app) GetUser(c context.Context, req *pb.GetUserReq) (*pb.GetUserResp, err
 	}
 	return &pb.GetUserResp{
 		User: &pb.User{
+			UserId:    user.Id,
 			Username:  user.Username,
 			Nickname:  user.Nickname,
 			Sex:       user.Sex,
@@ -50,6 +51,7 @@ func (*app) GetUsers(c context.Context, req *pb.GetUsersReq) (*pb.GetUsersResp, 
 	pbUser := make(map[int64]*pb.User, len(users))
 	for i := range users {
 		pbUser[users[i].Id] = &pb.User{
+			UserId:    users[i].Id,
 			Username:  users[i].Username,
 			Nickname:  users[i].Nickname,
 			Sex:       users[i].Sex,
@@ -74,6 +76,7 @@ func (*app) SearchUser(c context.Context, req *pb.SearchUserReq) (*pb.SearchUser
 	pbUsers := make([]*pb.User, len(users))
 	for i := range users {
 		pbUsers[i] = &pb.User{
+			UserId:    users[i].Id,
 			Username:  users[i].Username,
 			Nickname:  users[i].Nickname,
 			Sex:       users[i].Sex,

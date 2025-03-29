@@ -27,7 +27,7 @@ func HandleRPC() {
 			fmt.Printf("启动重连定时器，超时将清除所有状态\n")
 			CS.connLogout(cmd.Ctx, cmd.ConnId)
 		default:
-			panic("commmand not defined")
+			sendMsg(cmd.ConnId, pb.CMD_Ack, []byte("commmand not defined"))
 		}
 	}
 }
@@ -45,8 +45,6 @@ func CmdMessageHandler(ctx *cmdContext, cmdMessage *pb.Data) {
 		reconn(ctx, cmdMessage)
 	case pb.CMD_Ack:
 		ack(ctx, cmdMessage)
-	default:
-		panic("unsupport cmd ")
 	}
 }
 
@@ -100,6 +98,8 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 	if err != nil {
 		fmt.Println("uplinkMessage unmarshal failed")
 	}
+	fmt.Printf("%v\n", up)
+	fmt.Printf("sessionId - [%d]\n", up.SessionId)
 	//比较更新clientID:确保用户维度消息幂等有序
 	if CS.compareAndIncrementClientID(ctx.Ctx, ctx.ConnId, up.ClientId, up.SessionId) {
 		//先调用业务层的rpc接口，只有rpc返回成功了，才能更新最大消息id和响应客户端成功
@@ -123,16 +123,18 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 		//失败代表分配seqID失败获取落库失败，
 		//防止丢消息，需要客户端重传
 		if err != nil {
+			fmt.Println(err)
 			fmt.Printf("message storage database failed\n")
 			return
 		}
 		//发送上行消息ack
 		ack := pb.AckMsg{
-			Code:     0,
-			Message:  "OK",
-			ToType:   pb.CMD_Uplink,
-			ConnId:   ctx.ConnId,
-			ClientId: up.ClientId,
+			Code:      0,
+			Message:   "OK",
+			ToType:    pb.CMD_Uplink,
+			ConnId:    ctx.ConnId,
+			ClientId:  up.ClientId,
+			SessionId: up.SessionId,
 		}
 		payload, err := proto.Marshal(&ack)
 		if err != nil {
@@ -141,6 +143,8 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 		}
 		sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
 
+	} else {
+		fmt.Printf("clientID not match\n")
 	}
 	fmt.Print("已处理上行消息\n")
 }
@@ -233,14 +237,14 @@ func sendDownlinkMessage(ctx context.Context, connID int64, down *pb.DownlinkMsg
 	err = CS.AppendLastMsg(ctx, connID, down)
 	if err != nil {
 		//TODO:重启state后，内存中的状态信息会消失,需要兜底
-		panic(err)
+		fmt.Println(err)
 	}
 }
 
 func reSendDownlinkMessage(connID int64) {
 	down, err := CS.GetLastMsg(context.Background(), connID)
 	if err != nil {
-		fmt.Print("reSendDownlinkMessage error:%s\n", err.Error())
+		fmt.Printf("reSendDownlinkMessage error:%s\n", err.Error())
 	}
 	if down == nil {
 		return
@@ -267,6 +271,7 @@ func sendMsg(connID int64, cmd pb.CMD, payload []byte) {
 	if err != nil {
 		fmt.Printf("state handler sendMsg: protobuf Marshal failed\n")
 	}
+	fmt.Printf("下行:data-[%s]\n", string(payload))
 	_, err = rpc.GetGatewayClient().SendDownlinkMessage(context.TODO(), &pb.GatewayRequest{
 		ConnId: connID,
 		Data:   d,

@@ -13,5 +13,5 @@ const (
 	//群组的下一条消息序列号
 	GroupSeqIDKey = "group_seqid_%d" //group_seqid_'group_id'
 
-	TTL7Day = 7 * 24 * time.Hour //一周过期时间
+	TTL7Day = time.Hour //一小时过期时间
 )

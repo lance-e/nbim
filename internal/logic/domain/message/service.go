@@ -35,7 +35,7 @@ func (*service) SendToGroup(senderId int64, deviceId int64, sessionId uint64, co
 
 	//step2:落库(TODO:异步落库)
 	msgs := []*Messages{
-		&Messages{
+		{
 			Seq:         id,
 			SenderId:    senderId,
 			SessionId:   sessionId,
@@ -80,7 +80,7 @@ func (*service) SendToUser(senderId int64, deviceId int64, userId int64, content
 	id := SnowflakeId.Generate()
 	//step2:落库(TODO:异步落库)
 	msgs := []*Messages{
-		&Messages{
+		{
 			Seq:         id,
 			SenderId:    senderId,
 			SessionId:   uint64(userId),
