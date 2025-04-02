@@ -11,11 +11,16 @@
 
 ### 基本架构：
 
-消息协议：
+##### 1.消息协议：
 
 ![](./image/protocal)
 
-接入层：gateway和state的拆分：
+##### 2.接入层：
+###### ipconfig 架构:
+
+![](./image/ipconfig)
+
+###### gateway和state的拆分：
 
 ![](./image/gateway_state)
 
@@ -43,17 +48,18 @@
 - protobuf
 - zap
 - gorm
+- ...
 
 ### 基本架构
 
-- Connection:接入层，分为tcp/ws长连接和http短链接两板块。
-- Logic:逻辑层，负责设备信息，好友信息，群组消息管理，消息转发等逻辑。
+- Connection:接入层，分为tcp/ws长连接和http短连接两板块。
+- Logic:逻辑层，负责设备信息，好友信息，群组消息管理，消息存储转发等逻辑。
 
 ### 快速开始
 ##### 建库建表:
 
 ~~~shell
-mysql -u lance -p < ./sql/tables.sql
+mysql -u root -p < ./sql/tables.sql
 ~~~
 
 ##### 构建：
