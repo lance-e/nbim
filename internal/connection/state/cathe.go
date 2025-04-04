@@ -104,35 +104,69 @@ func (c *catheState) compareAndIncrementClientID(ctx *context.Context, connID in
 	key := fmt.Sprintf(db.MaxClientIDKey, slot, connID, sessionID)
 	//TODO:lua脚本优化,实现原子性
 	//FIXME:未保证原子性，出错就不恢复
-	result, err := db.RedisCli.Exists(key).Result()
+	/* result, err := db.RedisCli.Exists(key).Result() */
+	/* if err != nil { */
+	/* return false */
+	/* } */
+	/* //不存在 */
+	/* if result == 0 { */
+	/* db.RedisCli.Set(key, 0, db.TTL7Day) */
+	/* } */
+	/* //获取value */
+	/* value, err := db.RedisCli.Get(key).Int() */
+	/* if err != nil { */
+	/* return false */
+	/* } */
+	/* //对比 */
+	/* if value == int(oldClientID) { */
+	/* //自增 */
+	/* err = db.RedisCli.Incr(key).Err() */
+	/* if err != nil { */
+	/* return false */
+	/* } */
+	/* //过期时间 */
+	/* err = db.RedisCli.Expire(key, db.TTL7Day).Err() */
+	/* if err != nil { */
+	/* return false */
+	/* } */
+	/* return true */
+	/* } else { */
+	/* return false */
+	/* } */
+	script := `
+local key = KEYS[1]
+local oldClientID = tonumber(ARGV[1])
+local ttl = tonumber(ARGV[2])
+
+if redis.call("EXISTS", key) == 0 then
+    redis.call("SET", key, 0, "EX", ttl)
+end
+
+local current = tonumber(redis.call("GET", key))
+if not current then
+    return 0
+end
+
+if current ~= oldClientID then
+    return 0
+end
+
+redis.call("INCR", key)
+redis.call("EXPIRE", key, ttl)
+return 1
+`
+
+	// 转换为 int64 类型的 TTL
+	ttl := int64(db.TTL7Day / time.Second)
+
+	// 执行脚本
+	_, err := db.RedisCli.Eval(script, []string{key}, oldClientID, ttl).Int()
 	if err != nil {
+		fmt.Printf("redis wrong!!!!!!!!!\n")
 		return false
 	}
-	//不存在
-	if result == 0 {
-		db.RedisCli.Set(key, 0, db.TTL7Day)
-	}
-	//获取value
-	value, err := db.RedisCli.Get(key).Int()
-	if err != nil {
-		return false
-	}
-	//对比
-	if value == int(oldClientID) {
-		//自增
-		err = db.RedisCli.Incr(key).Err()
-		if err != nil {
-			return false
-		}
-		//过期时间
-		err = db.RedisCli.Expire(key, db.TTL7Day).Err()
-		if err != nil {
-			return false
-		}
-		return true
-	} else {
-		return false
-	}
+
+	return true
 }
 
 // 重置心跳计时器

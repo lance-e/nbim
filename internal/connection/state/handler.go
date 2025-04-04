@@ -3,6 +3,7 @@ package state
 import (
 	"context"
 	"fmt"
+	"nbim/pkg/db"
 	"nbim/pkg/logger"
 	"nbim/pkg/protocol/pb"
 	"nbim/pkg/rpc"
@@ -125,6 +126,20 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 		if err != nil {
 			fmt.Println(err)
 			fmt.Printf("message storage database failed\n")
+			ack := pb.AckMsg{
+				Code:      0,
+				Message:   "nak , storage database failed",
+				ToType:    pb.CMD_Uplink,
+				ConnId:    ctx.ConnId,
+				ClientId:  up.ClientId,
+				SessionId: up.SessionId,
+			}
+			payload, err := proto.Marshal(&ack)
+			if err != nil {
+				fmt.Printf("AckMsg marshal failed\n")
+				return
+			}
+			sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
 			return
 		}
 		//发送上行消息ack
@@ -145,6 +160,23 @@ func uplink(ctx *cmdContext, data *pb.Data) {
 
 	} else {
 		fmt.Printf("clientID not match\n")
+		slot := GetSlot(ctx.ConnId)
+		key := fmt.Sprintf(db.MaxClientIDKey, slot, ctx.ConnId, up.SessionId)
+		value, _:= db.RedisCli.Get(key).Int() 
+		nck := pb.AckMsg{
+			Code:      0,
+			Message:   fmt.Sprintf("nak ,lastest is  %d\n",value),
+			ToType:    pb.CMD_Uplink,
+			ConnId:    ctx.ConnId,
+			ClientId:  up.ClientId,
+			SessionId: up.SessionId,
+		}
+		payload, err := proto.Marshal(&nck)
+		if err != nil {
+			fmt.Printf("AckMsg marshal failed\n")
+			return
+		}
+		sendMsg(ctx.ConnId, pb.CMD_Ack, payload)
 	}
 	fmt.Print("已处理上行消息\n")
 }
